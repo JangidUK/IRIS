@@ -22,7 +22,9 @@ package com.temenos.interaction.commands.odata;
  */
 
 
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -283,5 +285,38 @@ public class CommandHelper {
 		else {
 			return actionProperties.get(propertyName).toString();		//e.g. fld eq '{code}'
 		}		
+	}
+	
+	/**
+	 * get encoded string for query parameter.
+	 * there is a bug in OData - unable to parse single quote inside the string
+	 * OData terminates the string and throwing invalid exception if string contain
+	 * single quote (')
+	 * @param query parameter string 
+	 * @return encoded string
+	 */
+	protected static String getEncodedFilterString(String filterString) {
+		if(filterString == null || filterString.length() == 0) {
+			return filterString;
+		}
+		String tokens[] = filterString.split("\\s+");
+		String newString = "";
+		boolean isCharFound = false;
+		for(String token: tokens) {
+			int idx = token.indexOf('\'', 1);
+			int len = token.length() - 1;
+			if( idx > 1 && idx < len ) {
+				isCharFound = true;
+				String subString = token.substring(1, len);
+				try {
+					subString = URLEncoder.encode(subString, "UTF-8");
+					token = token.charAt(0) + subString + token.charAt(len);
+				} catch (UnsupportedEncodingException e) {
+					throw new RuntimeException(e);
+				}
+			}
+			newString += token + " ";
+		}
+		return isCharFound ? newString : filterString;
 	}
 }

@@ -141,7 +141,7 @@ public class TestHTTPHypermediaRIM {
 			if (o instanceof InteractionContext) {
 				InteractionContext ctx = (InteractionContext) o;
 				MultivaluedMap<String, String> mvmap = ctx.getQueryParameters();
-				if (!mvmap.getFirst("$filter").equals("this that")) {
+				if (!mvmap.getFirst("$filter").equals("this+that")) {
 					return false;
 				}
 				return true;

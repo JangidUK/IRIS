@@ -95,7 +95,7 @@ public class GETNavPropertyCommand implements InteractionCommand {
 			String inlineCount = queryParams.getFirst("$inlinecount");
 			String top = queryParams.getFirst("$top");
 			String skip = queryParams.getFirst("$skip");
-			String filter = queryParams.getFirst("$filter");
+			String filter = CommandHelper.getEncodedFilterString(queryParams.getFirst("$filter"));
 			String orderBy = queryParams.getFirst("$orderby");
 	// TODO what are format and callback used for
 //			String format = queryParams.getFirst("$format");

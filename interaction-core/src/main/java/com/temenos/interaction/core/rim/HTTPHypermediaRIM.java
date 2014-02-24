@@ -500,7 +500,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
     	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
     	// work around an issue in wink, wink does not decode query parameters in 1.1.3
-    	decodeQueryParams(queryParameters);
+    	// decodeQueryParams(queryParameters);
     	// create the interaction context
     	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
     	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, currentState, metadata);
