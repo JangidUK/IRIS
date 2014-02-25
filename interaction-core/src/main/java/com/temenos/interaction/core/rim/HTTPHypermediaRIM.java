@@ -22,8 +22,6 @@ package com.temenos.interaction.core.rim;
  */
 
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -499,9 +497,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 	private InteractionContext buildInteractionContext(HttpHeaders headers, UriInfo uriInfo, Event event) {
     	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
     	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
-    	// work around an issue in wink, wink does not decode query parameters in 1.1.3
-    	// decodeQueryParams(queryParameters);
-    	// create the interaction context
     	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
     	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, currentState, metadata);
     	return ctx;
@@ -630,29 +625,6 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} catch(Exception ie) {
 			logger.error("Failed to access resource [" + targetState.getId() + "] with error [" + ie.getMessage() + "]");
 			throw new RuntimeException(ie);
-		}
-    }
-    
-    
-    @SuppressWarnings("static-access")
-	private void decodeQueryParams(MultivaluedMap<String, String> queryParameters) {
-    	try {
-    		if (queryParameters == null)
-    			return;
-			URLDecoder ud = new URLDecoder();
-			for (String key : queryParameters.keySet()) {
-				List<String> values = queryParameters.get(key);
-				if (values != null) {
-					List<String> newValues = new ArrayList<String>();
-				    for (String value : values) {
-				    	if (value != null)
-				    		newValues.add(ud.decode(value, "UTF-8"));
-				    }
-				    queryParameters.put(key, newValues);
-				}
-			}
-		} catch (UnsupportedEncodingException e) {
-			throw new RuntimeException(e);
 		}
     }
     
