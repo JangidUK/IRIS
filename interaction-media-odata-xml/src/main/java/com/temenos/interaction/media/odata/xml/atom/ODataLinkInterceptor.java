@@ -108,7 +108,7 @@ public class ODataLinkInterceptor implements LinkInterceptor {
 	 * @return odata link rel
 	 */
 	public String getODataLinkRelation(Link link, String entitySetName) {
-		assert(entitySetName != null);
+//		assert(entitySetName != null);
 		String rel = link.getRel();
 		Transition transition = link.getTransition();
 		if(transition == null) {

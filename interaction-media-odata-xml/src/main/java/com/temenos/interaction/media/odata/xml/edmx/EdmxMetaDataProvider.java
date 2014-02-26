@@ -32,12 +32,10 @@ import java.lang.reflect.Type;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
@@ -58,8 +56,6 @@ import com.temenos.interaction.core.resource.ResourceTypeHelper;
 @Consumes({MediaType.APPLICATION_XML})
 @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_ATOM_XML, MediaType.APPLICATION_XHTML_XML, MediaType.TEXT_HTML})
 public class EdmxMetaDataProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
-	@Context
-	private UriInfo uriInfo;
 	
 	public EdmxMetaDataProvider() {}
 	

@@ -91,7 +91,7 @@ public class AtomEntityEntryFormatWriter {
 			Map<Transition,RESTResource> embeddedResources) 
 	{
 		String baseUri = AtomXMLProvider.getBaseUri(serviceDocument, uriInfo);
-		String absoluteId = (baseUri.endsWith("/") ? baseUri : baseUri + "/") + uriInfo.getPath();
+		String absoluteId = uriInfo.getBaseUri() + uriInfo.getPath();
 		
 		DateTime utc = new DateTime().withZone(DateTimeZone.UTC);
 		String updated = InternalUtil.toString(utc);

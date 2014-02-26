@@ -157,6 +157,8 @@ public class HypermediaTemplateHelper {
 	}
 	
 	private static String getUriTemplatePattern(String param) {
-		return "((?<"+param+">[^\\/]+))";
+		// works with Java 7
+		//		return "((?<"+param+">[^\\/]+))";
+		return "([^\\/]*)";
 	}
 }

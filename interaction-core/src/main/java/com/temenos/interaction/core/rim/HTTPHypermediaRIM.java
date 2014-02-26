@@ -428,11 +428,14 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		    	if (event.getMethod().equals(HttpMethod.GET)) {
 		    		String ifNoneMatch = HeaderHelper.getFirstHeader(headers, HttpHeaders.IF_NONE_MATCH);
 		    		String etag = ctx.getResource() != null ? ctx.getResource().getEntityTag() : null;
+		    		ResourceState targetState = ctx.getTargetState();
 		    		if (result == Result.SUCCESS && 
 		    				etag != null && etag.equals(ifNoneMatch)) {
 		    			//Response etag matches IfNoneMatch precondition
 		    			status = Status.NOT_MODIFIED;
-		    		} else if(result == Result.SUCCESS) {
+		    		} else if (result == Result.SUCCESS && targetState.isTransientState()) {
+	        			status = Status.SEE_OTHER;
+		        	} else if (result == Result.SUCCESS) {
 		    			status = Status.OK;
 		    		}
 				} else if (event.getMethod().equals(HttpMethod.POST)) {
@@ -517,7 +520,12 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 		} else if (status.equals(Response.Status.SEE_OTHER)) {
 			ResourceState targetState = ctx.getTargetState();
 			Transition autoTransition = targetState.getAutoTransition();
-    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, resource, pathParameters);
+			Object entity = null;
+			if (resource != null) {
+				assert(resource instanceof EntityResource) : "Must be an EntityResource for an auto transition";
+				entity = ((EntityResource<?>)resource).getEntity();
+			}
+    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, entity, pathParameters);
 			responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 		} else if (status.equals(Response.Status.CREATED)) {
 			ResourceState currentState = ctx.getCurrentState();
@@ -535,8 +543,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			}
 			if (autoTransition != null && autoTransition.getCommand().isAutoTransition()) {
 				assert(resource instanceof EntityResource) : "Must be an EntityResource as we have created a new resource";
-	    		@SuppressWarnings("rawtypes")
-				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource)resource).getEntity(), pathParameters);
+				Link target = hypermediaEngine.createLink(autoTransition, ((EntityResource<?>)resource).getEntity(), pathParameters);
 				responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 				Response autoResponse = getResource(headers, autoTransition, ctx);
 	        	if (autoResponse.getStatus() != HttpStatus.OK.getCode()) {

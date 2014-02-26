@@ -486,11 +486,15 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + state.getEntityName();
 		try {
 			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
-			EdmEntitySet targetEntitySet = edmDataServices.getEdmEntitySet(targetEntityType);
-			if (targetEntitySet != null)
-				entitySetName = targetEntitySet.getName();
-		} catch (NotFoundException nfe) {
-			logger.debug("Entity [" + fqTargetEntityName + "] is not an entity set.");
+			if (targetEntityType != null) {
+				EdmEntitySet targetEntitySet = edmDataServices.getEdmEntitySet(targetEntityType);
+				if (targetEntitySet != null)
+					entitySetName = targetEntitySet.getName();
+			} else {
+				logger.warn("No EdmEntityType found for [" + fqTargetEntityName + "]");
+			}
+		} catch (NotFoundException e) {
+			logger.warn("Entity [" + fqTargetEntityName + "] is not an entity set.");
 		}
 		if (entitySetName == null) {
 			entitySetName = state.getName();		
