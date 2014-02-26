@@ -23,7 +23,6 @@ package com.temenos.interaction.core.workflow;
 
 
 import javax.ws.rs.core.Response.Status.Family;
-import javax.ws.rs.core.Response.StatusType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,20 +65,15 @@ public class RetryWorkflowStrategyCommand implements InteractionCommand {
 	 */
 	private Result commandExecute(InteractionContext ctx) throws InteractionException {
 		Result result = null;
-		StatusType statusType = null;
 		int retryCount = -1;
 		while ( ( maxRetryCount - retryCount++ ) > -1 ) {
 			try {
 				result = command.execute(ctx);
 				break;
 			} catch (InteractionException ex) {
-				if ( retryCount >= maxRetryCount) {
-					throw ex;
-				}
-				long nextRetry = maxRetryInterval * (int)Math.pow(2,retryCount);
-				statusType = ex.getHttpStatus();
-				if (Family.SERVER_ERROR.equals(statusType.getFamily())) {
-					logger.info("iris_request maxRetryCount=" + String.valueOf(maxRetryCount) +
+				if (Family.SERVER_ERROR.equals(ex.getHttpStatus().getFamily()) && retryCount < maxRetryCount ) {
+					long nextRetry = maxRetryInterval * (int)Math.pow(2,retryCount);
+						logger.info("iris_request maxRetryCount=" + String.valueOf(maxRetryCount) +
 								" maxRetryInterval=" + String.valueOf(maxRetryInterval) +
 								" retryingNumber=" + String.valueOf(retryCount) +
 								" nextRetryIn=" + String.valueOf(nextRetry) + " seconds");
@@ -88,7 +82,7 @@ public class RetryWorkflowStrategyCommand implements InteractionCommand {
 					} catch (InterruptedException e) {
 						logger.error("InterruptedException: " + e.getMessage());
 					}
-				}
+				} else { throw ex; }
 			}
 		}
 		return result;
