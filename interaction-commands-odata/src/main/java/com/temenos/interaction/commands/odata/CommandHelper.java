@@ -25,6 +25,7 @@ package com.temenos.interaction.commands.odata;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -293,12 +294,28 @@ public class CommandHelper {
 	 * @param filterString
 	 * @return decoded string 
 	 */
-	protected static String getURLDecodedString(String filterString) {
+	public static String getURLDecodedString(String filterString) {
 		if(filterString == null || filterString.length() == 0) {
 			return filterString;
 		}
 		try {
 			return URLDecoder.decode(filterString, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
+	 * 
+	 * @param filterString
+	 * @return encode string
+	 */
+	public static String getURLEncodedString(String filterString) {
+		if(filterString == null || filterString.length() == 0) {
+			return filterString;
+		}
+		try {
+			return URLEncoder.encode(filterString, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			throw new RuntimeException(e);
 		}

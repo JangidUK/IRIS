@@ -271,4 +271,28 @@ public class TestCommandHelper {
         InteractionContext ctx = new InteractionContext(new MultivaluedMapImpl<String>(), queryParams, resourceState, mock(Metadata.class));
         return ctx;
 	}
+	
+	@Test
+	public void testGetURLEncodedString() {
+		String url = "Iq eq 'My Test'";
+		assertEquals("Iq+eq+%27My+Test%27", CommandHelper.getURLEncodedString(url));
+	}
+	
+	@Test
+	public void testGetURLDecodedString() {
+		String url = "Iq+eq+%27My%20Test%27";
+		assertEquals("Iq eq 'My Test'", CommandHelper.getURLDecodedString(url));
+	}
+	
+	@Test
+	public void testGetURLEncodingDecodedString() {
+		String url = "Iq+eq+%27Test%27";
+		assertEquals(url, CommandHelper.getURLEncodedString(CommandHelper.getURLDecodedString(url)));
+	}
+	
+	@Test
+	public void testGetURLDecodingEncodedString() {
+		String url = "Iq eq 'Test'";
+		assertEquals(url, CommandHelper.getURLDecodedString(CommandHelper.getURLEncodedString(url)));
+	}
 }
