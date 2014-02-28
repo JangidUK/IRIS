@@ -100,7 +100,7 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 	private EntityQueryInfo getEntityQueryInfo(InteractionContext ctx) {
 		MultivaluedMap<String, String> queryParams = ctx.getQueryParameters();
 		String actionFilter = CommandHelper.getViewActionProperty(ctx, "filter");		//Filter defined as action property 
-		String filter = CommandHelper.getEncodedFilterString(queryParams.getFirst("$filter"));	//Query filter
+		String filter = CommandHelper.getURLDecodedString(queryParams.getFirst("$filter"));	//Query filter
 		if(actionFilter != null && !actionFilter.isEmpty()) {
 			filter = filter != null ? filter + " and " + actionFilter : actionFilter;
 		}
