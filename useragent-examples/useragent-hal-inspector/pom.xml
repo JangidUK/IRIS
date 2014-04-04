@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.temenos.interaction</groupId>
     <artifactId>interaction-parent</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
     <relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
@@ -13,5 +13,13 @@
   <packaging>jar</packaging>
   <name>useragent-hal-inspector</name>
   <url>http://www.temenos.com</url>
-	
+
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/webapp</directory>
+      </resource>
+    </resources>
+  </build>
+
 </project>

@@ -26,7 +26,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntity;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntitiesResponse;
@@ -44,12 +43,8 @@ import com.temenos.interaction.core.resource.CollectionResource;
 public class GETEntitiesCommand extends AbstractODataCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETEntitiesCommand.class);
 
-	private ODataProducer producer;
-	private EdmDataServices edmDataServices;
-
 	public GETEntitiesCommand(ODataProducer producer) {
-		this.producer = producer;
-		this.edmDataServices = producer.getMetadata();
+		super(producer);
 	}
 
 	/* Implement InteractionCommand interface */
@@ -64,7 +59,7 @@ public class GETEntitiesCommand extends AbstractODataCommand implements Interact
 		String entityName = getEntityName(ctx);
 		logger.debug("Getting entities for " + entityName);
 		try {
-			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, edmDataServices);
+			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, getEdmMetadata());
 			String entitySetName = entitySet.getName();
 
 			EntitiesResponse response = producer.getEntities(entitySetName, getQueryInfo(ctx));

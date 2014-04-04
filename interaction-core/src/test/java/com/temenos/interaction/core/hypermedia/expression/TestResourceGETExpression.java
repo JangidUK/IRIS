@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Assert;
@@ -140,7 +141,7 @@ public class TestResourceGETExpression {
 		HTTPHypermediaRIM rimHandler = mockRimHandler();
 		ResourceStateMachine rsm = rimHandler.getHypermediaEngine();
 		rsm.setCommandController(mockCommandController());
-		InteractionContext ctx = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), rsm.getInitial(), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), rsm.getInitial(), mock(Metadata.class));
 		
 		
 		ResourceGETExpression rgeOK = new ResourceGETExpression(rsm.getResourceStateByName("pwaiting"), Function.OK);
@@ -157,7 +158,7 @@ public class TestResourceGETExpression {
 		
 		HTTPHypermediaRIM rimHandler = mockRimHandler();
 		ResourceStateMachine rsm = rimHandler.getHypermediaEngine();
-		InteractionContext ctx = new InteractionContext(mock(MultivaluedMap.class), mock(MultivaluedMap.class), rsm.getInitial(), mock(Metadata.class));
+		InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), mock(MultivaluedMap.class), rsm.getInitial(), mock(Metadata.class));
 		
 		ResourceGETExpression rgeOK = new ResourceGETExpression(rsm.getResourceStateByName("pconfirmed"), Function.OK);
 		boolean result1 = rgeOK.evaluate(rimHandler, ctx);

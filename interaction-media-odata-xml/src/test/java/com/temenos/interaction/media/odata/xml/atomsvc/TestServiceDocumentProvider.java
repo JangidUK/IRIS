@@ -49,19 +49,33 @@ import org.odata4j.edm.EdmSimpleType;
 
 import com.temenos.interaction.core.ExtendedMediaTypes;
 import com.temenos.interaction.core.MultivaluedMapImpl;
+import com.temenos.interaction.core.hypermedia.Action;
+import com.temenos.interaction.core.hypermedia.ResourceState;
+import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 import com.temenos.interaction.core.resource.EntityResource;
 
 public class TestServiceDocumentProvider {
 	public class MockServiceDocumentProvider extends ServiceDocumentProvider {
+		public MockServiceDocumentProvider(ResourceStateMachine hypermediaEngine) {
+			super(hypermediaEngine);
+		}
+
 		public void setUriInfo(UriInfo uriInfo) {
 			super.setUriInfo(uriInfo);
 		}
 	};
 	
+	private ResourceStateMachine mockResourceStateMachine() {
+		ResourceState initial = new ResourceState("ServiceDocument", "ServiceDocument", new ArrayList<Action>(), "/");
+		ResourceStateMachine rsm = new ResourceStateMachine(initial);
+		return rsm;
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testWriteServiceDocumentResource() throws Exception {
 		EntityResource<EdmDataServices> mr = mock(EntityResource.class);
+		ResourceStateMachine rsm = mockResourceStateMachine();
 		
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
 
@@ -69,7 +83,7 @@ public class TestServiceDocumentProvider {
 		when(mr.getEntity()).thenReturn(mockEDS);
 		
 		//Serialize service document resource
-		MockServiceDocumentProvider p = new MockServiceDocumentProvider();
+		MockServiceDocumentProvider p = new MockServiceDocumentProvider(rsm);
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -77,7 +91,7 @@ public class TestServiceDocumentProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		p.writeTo(mr, EntityResource.class, EdmDataServices.class, null, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE, null, bos);
 
-		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><service xmlns=\"http://www.w3.org/2007/app\" xml:base=\"http://localhost:8080/responder/rest\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:app=\"http://www.w3.org/2007/app\"><workspace><atom:title>Default</atom:title><collection href=\"Flight\"><atom:title>Flight</atom:title></collection></workspace></service>";
+		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><service xmlns=\"http://www.w3.org/2007/app\" xml:base=\"http://localhost:8080/responder/rest/\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:app=\"http://www.w3.org/2007/app\"><workspace><atom:title>Default</atom:title><collection href=\"Flight\"><atom:title>Flight</atom:title></collection></workspace></service>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
@@ -86,7 +100,8 @@ public class TestServiceDocumentProvider {
 	@Test
 	public void testWriteServiceDocumentResourceGenericEntity() throws Exception {
 		EntityResource<EdmDataServices> mr = mock(EntityResource.class);
-		
+		ResourceStateMachine rsm = mockResourceStateMachine();
+
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
 
 		//Mock ServiceDocumentResource
@@ -96,7 +111,7 @@ public class TestServiceDocumentProvider {
 		GenericEntity<EntityResource<EdmDataServices>> ge = new GenericEntity<EntityResource<EdmDataServices>>(mr) {};
 		
 		//Serialize service document resource
-		MockServiceDocumentProvider p = new MockServiceDocumentProvider();
+		MockServiceDocumentProvider p = new MockServiceDocumentProvider(rsm);
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest");
 		when(uriInfo.getBaseUri()).thenReturn(uri);
@@ -104,7 +119,7 @@ public class TestServiceDocumentProvider {
 		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		p.writeTo(ge.getEntity(), ge.getRawType(),ge.getType(), null, ExtendedMediaTypes.APPLICATION_ATOMSVC_XML_TYPE, null, bos);
 
-		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><service xmlns=\"http://www.w3.org/2007/app\" xml:base=\"http://localhost:8080/responder/rest\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:app=\"http://www.w3.org/2007/app\"><workspace><atom:title>Default</atom:title><collection href=\"Flight\"><atom:title>Flight</atom:title></collection></workspace></service>";
+		String expectedXML = "<?xml version=\"1.0\" encoding=\"utf-8\"?><service xmlns=\"http://www.w3.org/2007/app\" xml:base=\"http://localhost:8080/responder/rest/\" xmlns:atom=\"http://www.w3.org/2005/Atom\" xmlns:app=\"http://www.w3.org/2007/app\"><workspace><atom:title>Default</atom:title><collection href=\"Flight\"><atom:title>Flight</atom:title></collection></workspace></service>";
 		String responseString = new String(bos.toByteArray(), "UTF-8");
 		XMLAssert.assertXMLEqual(expectedXML, responseString);
 	}
@@ -113,9 +128,11 @@ public class TestServiceDocumentProvider {
 	@Test
 	public void testWriteServiceDocumentResourceHttpHeaders() throws Exception {
 		EntityResource<EdmDataServices> mr = mock(EntityResource.class);
+		ResourceStateMachine rsm = mockResourceStateMachine();
+
 		EdmDataServices mockEDS = createMockFlightEdmDataServices();
 		when(mr.getEntity()).thenReturn(mockEDS);
-		MockServiceDocumentProvider p = new MockServiceDocumentProvider();
+		MockServiceDocumentProvider p = new MockServiceDocumentProvider(rsm);
 		UriInfo uriInfo = mock(UriInfo.class);
 		URI uri = new URI("http://localhost:8080/responder/rest");
 		when(uriInfo.getBaseUri()).thenReturn(uri);

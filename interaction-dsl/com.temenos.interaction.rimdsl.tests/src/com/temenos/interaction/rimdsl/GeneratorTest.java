@@ -714,6 +714,43 @@ public class GeneratorTest {
 		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"Test.AE\"));"));
 	}
 
+	private final static String RESOURCE_ON_ERROR_SEPARATE_RIM = "" +
+			"domain ErrorTest {" + LINE_SEP +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity" + LINE_SEP +
+			"	onerror --> Error.AE" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +  // end Test rim
+
+			"rim Error {" + LINE_SEP +
+			"	command Noop" + LINE_SEP +
+			"resource AE {" + LINE_SEP +
+			"	type: item" + LINE_SEP +
+			"	entity: ERROR" + LINE_SEP +
+			"	view: Noop" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +  // end Error rim
+			
+			"}" + LINE_SEP +
+			"";
+	
+	@Test
+	public void testGenerateOnErrorResourceSeparateRIM() throws Exception {
+		DomainModel domainModel = parseHelper.parse(RESOURCE_ON_ERROR_SEPARATE_RIM);
+		InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+		underTest.doGenerate(domainModel.eResource(), fsa);
+		
+		// collection
+		String expectedKey = IFileSystemAccess.DEFAULT_OUTPUT + "ErrorTest/Test/AResourceState.java";
+		assertTrue(fsa.getFiles().containsKey(expectedKey));
+		String output = fsa.getFiles().get(expectedKey).toString();
+		assertTrue(output.contains("super(\"ENTITY\", \"A\", createActions(), \"/A\", createLinkRelations(), null, factory.getResourceState(\"ErrorTest.Error.AE\"));"));
+	}
+
 	private final static String RESOURCE_WITH_BASEPATH = "" +
 			"rim Test {" + LINE_SEP +
 			"	command GetEntity" + LINE_SEP +

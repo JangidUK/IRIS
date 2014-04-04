@@ -59,7 +59,7 @@ resource Sectors {
 	type: collection
 	entity: Sector
 	view: GETEntities {
-		properties [ filter=filter ]
+		properties [ filter="{filter}" ]
 	}
 	path: "/Sectors()"
 	GET -> Sectors_IAuth {
@@ -155,7 +155,7 @@ resource Sectors_IAuth {
 	type: collection
 	entity: Sector
 	view: GETEntities {
-		properties [ filter=filter ]
+		properties [ filter="{filter}" ]
 	}
 	path: "/SectorsIAuth()"
 	GET *-> sector_IAuth {
@@ -191,7 +191,7 @@ resource Sectors_Reversed {
 	type: collection
 	entity: Sector
 	view: GETReversedEntities {
-		properties [ filter=filter ]
+		properties [ filter="{filter}" ]
 	}
 	path: "/SectorsReversed()"
 	GET *-> sector_Reversed {

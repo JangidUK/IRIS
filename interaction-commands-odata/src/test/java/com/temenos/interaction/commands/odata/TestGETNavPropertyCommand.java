@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Test;
@@ -177,7 +178,7 @@ public class TestGETNavPropertyCommand {
 		properties.put("navproperty", "mock");
 		when(resourceState.getViewAction()).thenReturn(new Action("NavPropertyCommand", Action.TYPE.VIEW, properties));
 		
-        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
         return ctx;
 	}
 

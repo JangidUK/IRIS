@@ -48,9 +48,9 @@ public class InteractionModel {
 
 	private String domain;
 	private String name;
-	private List<IMResourceStateMachine> resourceStateMachines = new ArrayList<IMResourceStateMachine>();
 	private IMState exceptionState = null;
 	private Map<String, IMState> errorHandlerStates = new HashMap<String, IMState>();		//state name, state
+	private Map<String, IMResourceStateMachine> entityRsmMap = new HashMap<String, IMResourceStateMachine>();
 
 	/**
 	 * Construct an empty model
@@ -179,20 +179,15 @@ public class InteractionModel {
 	}
 	
 	public void addResourceStateMachine(IMResourceStateMachine resourceStateMachine) {
-		resourceStateMachines.add(resourceStateMachine);
+		entityRsmMap.put(resourceStateMachine.getEntityName(), resourceStateMachine);
 	}
 	
 	public List<IMResourceStateMachine> getResourceStateMachines() {
-		return resourceStateMachines;
+		return new ArrayList<IMResourceStateMachine>(entityRsmMap.values());
 	}
 	
 	public IMResourceStateMachine findResourceStateMachine(String entityName) {
-		for(IMResourceStateMachine rsm : resourceStateMachines) {
-			if(rsm.getEntityName().equals(entityName)) {
-				return rsm;
-			}
-		}
-		return null;
+		return entityRsmMap.get(entityName);
 	}
 
 	public String getName() {
@@ -210,6 +205,7 @@ public class InteractionModel {
 	public void setDomain(String domain) {
 		this.domain = domain;
 	}
+	
 	public void setExceptionState(IMState exceptionState) {
 		this.exceptionState = exceptionState;
 	}

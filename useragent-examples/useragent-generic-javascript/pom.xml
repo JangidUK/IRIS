@@ -5,7 +5,7 @@
   <parent>
     <groupId>com.temenos.interaction</groupId>
     <artifactId>interaction-parent</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.5.0-SNAPSHOT</version>
     <relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
@@ -15,6 +15,8 @@
   <url>http://www.temenos.com</url>
   
   <properties>
+    <jdk.version>1.6</jdk.version>
+    <plugin.maven-compiler-plugin.version>2.4</plugin.maven-compiler-plugin.version>
 <!--  See comment below regarding issue with coffee script
   <jasmine-plugin-version>1.3.1.4-SNAPSHOT</jasmine-plugin-version>
 -->
@@ -23,6 +25,11 @@
   
   <build>
     <finalName>useragent-generic-javascript</finalName>
+    <resources>
+      <resource>
+        <directory>src/main/webapp</directory>
+      </resource>
+    </resources>
     <plugins>
       <!-- 
       <plugin>
@@ -108,6 +115,15 @@ If you want to see and build the tests now, build this fork locally https://gith
     </plugins>
     <pluginManagement>
     	<plugins>
+    		<!-- Configure the maven compiler to use the java version 1.7 -->
+	        <plugin>
+	          <artifactId>maven-compiler-plugin</artifactId>
+	          <version>${plugin.maven-compiler-plugin.version}</version>
+	          <configuration>
+	            <source>${jdk.version}</source>
+	            <target>${jdk.version}</target>
+	          </configuration>
+	        </plugin>
     		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
     		<plugin>
     			<groupId>org.eclipse.m2e</groupId>

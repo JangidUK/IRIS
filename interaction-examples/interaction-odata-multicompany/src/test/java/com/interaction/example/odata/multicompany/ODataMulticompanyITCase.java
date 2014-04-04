@@ -71,6 +71,61 @@ public class ODataMulticompanyITCase {
 	@After
 	public void tearDown() {}
 
+	@Test
+	public void testGetServiceDocumentUri() throws Exception {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(baseUri).build();
+		// get the service document for the company specific service document
+		String serviceRootUri = consumer.getServiceRootUri();
+		assertNotNull(serviceRootUri);
+		GetMethod method = new GetMethod(serviceRootUri);
+		String response = null;
+		try {
+	    	method.setDoAuthentication(true);		//Require authentication
+			client.executeMethod(method);
+			assertEquals(200, method.getStatusCode());
+
+			if (method.getStatusCode() == HttpStatus.SC_OK) {
+				// read as string
+				response = method.getResponseBodyAsString();
+			}
+		} catch (IOException e) {
+			fail(e.getMessage());
+		} finally {
+			method.releaseConnection();
+		}
+		// assert the Users entity set exists in service document
+		assertTrue(response.contains("<collection href=\"Flights\">"));
+	}
+
+	@Test
+	public void testGetServiceDocumentBaseUri() throws Exception {
+		org.apache.abdera.model.Service service = null;
+    	GetMethod method = new GetMethod(baseUri);
+		try {
+			client.executeMethod(method);
+			assertEquals(200, method.getStatusCode());
+
+			if (method.getStatusCode() == HttpStatus.SC_OK) {
+				// read as string for debugging
+				String response = method.getResponseBodyAsString();
+				System.out.println("Response = " + response);
+
+				Abdera abdera = new Abdera();
+				Parser parser = abdera.getParser();
+				Document<org.apache.abdera.model.Service> doc = parser.parse(new StringReader(response));
+				service = doc.getRoot();
+			}
+		} catch (IOException e) {
+			fail(e.getMessage());
+		} finally {
+			method.releaseConnection();
+		}
+
+		assertNotNull(service);
+		assertEquals("http://localhost:8080/example/interaction-odata-multicompany.svc/MockCompany001/", service.getBaseUri().toString());
+	}
+
+	
 	/**
 	 * GET item, check id of entity
 	 */

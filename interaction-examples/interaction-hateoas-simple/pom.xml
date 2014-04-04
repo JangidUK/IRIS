@@ -5,7 +5,7 @@
   <parent>
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.4.0-SNAPSHOT</version>
+	<version>0.5.0-SNAPSHOT</version>
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
@@ -15,6 +15,10 @@
 
   <name>interaction-example-hateoas-simple</name>
   <url>http://www.temenos.com</url>
+
+  <properties>
+    <jetty.version>9.0.5.v20130815</jetty.version>
+  </properties>
 
   <build>
     <plugins>
@@ -87,7 +91,7 @@
       <plugin>
         <groupId>org.eclipse.jetty</groupId>
         <artifactId>jetty-maven-plugin</artifactId>
-        <version>9.0.5.v20130815</version>
+        <version>${jetty.version}</version>
 		<configuration>
           <scanIntervalSeconds>10</scanIntervalSeconds>
           <stopPort>8005</stopPort>
@@ -165,7 +169,7 @@
     									interaction-sdk-plugin
     								</artifactId>
     								<versionRange>
-    									[0.4.0-SNAPSHOT,)
+    									[0.5.0-SNAPSHOT,)
     								</versionRange>
     								<goals>
     									<goal>rim-generate</goal>
@@ -184,7 +188,7 @@
     									interaction-sdk-rim-plugin
     								</artifactId>
     								<versionRange>
-    									[0.4.0-SNAPSHOT,)
+    									[0.5.0-SNAPSHOT,)
     								</versionRange>
     								<goals>
     									<goal>rim-generate</goal>
@@ -213,7 +217,6 @@
     </repository>
   </repositories>
   <dependencies>
-  
     <!-- Add dependency for our javascript user-agent -->
     <dependency>
         <groupId>com.temenos.interaction</groupId>
@@ -234,6 +237,14 @@
     <dependency>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-media-hal</artifactId>
+        <scope>compile</scope>
+    </dependency>
+
+    <!-- Add dependency for jetty-servlet Access-Control-Allow-Origin filter -->
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-servlets</artifactId>
+        <version>${jetty.version}</version>
         <scope>runtime</scope>
     </dependency>
 

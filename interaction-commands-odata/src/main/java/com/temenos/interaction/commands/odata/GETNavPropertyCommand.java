@@ -29,7 +29,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.producer.BaseResponse;
 import org.odata4j.producer.EntitiesResponse;
@@ -45,15 +44,11 @@ import com.temenos.interaction.core.command.InteractionCommand;
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.command.InteractionException;
 
-public class GETNavPropertyCommand implements InteractionCommand {
+public class GETNavPropertyCommand extends AbstractODataCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(GETNavPropertyCommand.class);
 
-	private ODataProducer producer;
-	private EdmDataServices edmDataServices;
-
 	public GETNavPropertyCommand(ODataProducer producer) {
-		this.producer = producer;
-		this.edmDataServices = producer.getMetadata();
+		super(producer);
 	}
 
 	/* Implement InteractionCommand interface */
@@ -69,7 +64,7 @@ public class GETNavPropertyCommand implements InteractionCommand {
 			throw new InteractionException(Status.BAD_REQUEST, "'entity' must be provided");		
 		}
 		
-		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
+		EdmEntitySet entitySet = getEdmMetadata().getEdmEntitySet(entity);
 		if (entitySet == null) {
 			throw new InteractionException(Status.NOT_FOUND, "Entity set not found [" + entity + "]");	
 		}
@@ -84,7 +79,7 @@ public class GETNavPropertyCommand implements InteractionCommand {
 		//Create entity key (simple types only)
 		OEntityKey key;
 		try {
-			key = CommandHelper.createEntityKey(edmDataServices, entity, ctx.getId());
+			key = CommandHelper.createEntityKey(getEdmMetadata(), entity, ctx.getId());
 		} catch(Exception e) {
 			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());	
 		}

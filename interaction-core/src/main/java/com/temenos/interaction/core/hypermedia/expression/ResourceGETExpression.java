@@ -101,7 +101,7 @@ public class ResourceGETExpression implements Expression {
 		
 		//Create a new interaction context for this state
     	MultivaluedMap<String, String> pathParameters = getPathParametersForTargetState(hypermediaEngine, ctx, ourTransition);
-    	InteractionContext newCtx = new InteractionContext(ctx, pathParameters, null, target);
+    	InteractionContext newCtx = new InteractionContext(ctx, null, pathParameters, null, target);
 
     	//Get the target resource
 		ResourceRequestConfig config = new ResourceRequestConfig.Builder()

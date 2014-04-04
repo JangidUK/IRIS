@@ -20,7 +20,7 @@
  */
 // Test
 // OData Root Service URI
-var ODATA_SVC = $("#where");
+var ODATA_SVC = null;
 var tips = $(".validateTips");
 
 // Page Load Actions
@@ -41,28 +41,29 @@ function OnPageLoad()
     $("#createEntity").button()
 			.click(OpenCreateUserDialog);
 
-    GetMetadata();
-    GetServices();    
+    GetMetadata($("#where").val());
+    GetServices($("#where").val());    
 } 
 
 //Page Events:
 
 //Get the metadata document
-function GetMetadata() 
+function GetMetadata(serviceUri) 
 {
     $("#loadingMetadata").show();
-	var uriMetadata = ODATA_SVC.val() + "$metadata";
+	var uriMetadata = serviceUri + "$metadata";
 	OData.read(uriMetadata, function (metadata) {
 		OData.defaultMetadata.push(metadata);		//Set result as the default metadata document
 	    $("#loadingMetadata").hide();
 	}, ErrorCallback, OData.metadataHandler);
 }
 //Gets all the services
-function GetServices() 
+function GetServices(serviceUri) 
 {
+	ODATA_SVC = serviceUri;
     $("#loadingServices").show();
     OData.read({ 
-    		requestUri: ODATA_SVC.val(),
+    		requestUri: serviceUri,
     		headers: { Accept: "application/atomsvc+xml" }
     	}, GetServicesCallback, ErrorCallback);
 }
@@ -249,7 +250,7 @@ function OpenUpdateDialog(entityName, row, href)
 function UpdateResource(entityName, href) 
 {
     $("#loading").show();
-    var requestURI = ODATA_SVC.val() + _.unescape(href);
+    var requestURI = ODATA_SVC + _.unescape(href);
 	var data = [];
 	$('#dialog-form').find('fieldset input').each(function(){
 		var key = $(this).eq(0).attr('name'),
@@ -290,7 +291,7 @@ function OpenDeleteDialog(entityUri)
     entityUri = _.unescape(entityUri);
     // append baseuri if the link is relative
     if (entityUri.indexOf("http://") == -1) {
-    	entityUri = ODATA_SVC.val() + entityUri;
+    	entityUri = ODATA_SVC + entityUri;
     }
     $dialog = $('<div></div>')
 		            .html('You are about to delete entity at "' + entityUri + '". Do you want to continue? ')

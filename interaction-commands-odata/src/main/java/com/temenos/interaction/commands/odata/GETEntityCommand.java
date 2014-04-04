@@ -27,7 +27,6 @@ import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntity;
 import org.odata4j.core.OEntityKey;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.EntityQueryInfo;
@@ -45,12 +44,8 @@ import com.temenos.interaction.core.resource.EntityResource;
 public class GETEntityCommand extends AbstractODataCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(GETEntityCommand.class);
 
-	private ODataProducer producer;
-	private EdmDataServices edmDataServices;
-
 	public GETEntityCommand(ODataProducer producer) {
-		this.producer = producer;
-		this.edmDataServices = producer.getMetadata();
+		super(producer);
 	}
 	
 	protected ODataProducer getProducer() {
@@ -68,11 +63,11 @@ public class GETEntityCommand extends AbstractODataCommand implements Interactio
 		String entityName = getEntityName(ctx);
 		logger.debug("Getting entity for " + entityName);
 		try {
-			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, edmDataServices);
+			EdmEntitySet entitySet = CommandHelper.getEntitySet(entityName, getEdmMetadata());
 			String entitySetName = entitySet.getName();
 
 			//Create entity key (simple types only)
-			OEntityKey key = CommandHelper.createEntityKey(edmDataServices, entitySetName, ctx.getId());
+			OEntityKey key = CommandHelper.createEntityKey(getEdmMetadata(), entitySetName, ctx.getId());
 			
 			//Get the entity
 			EntityResponse er = getProducer().getEntity(entitySetName, key, getEntityQueryInfo(ctx));

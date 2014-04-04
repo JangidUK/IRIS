@@ -46,6 +46,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.Response.StatusType;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.wink.common.http.HttpStatus;
@@ -501,7 +502,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
     	MultivaluedMap<String, String> queryParameters = uriInfo != null ? uriInfo.getQueryParameters(true) : null;
     	MultivaluedMap<String, String> pathParameters = uriInfo != null ? uriInfo.getPathParameters(true) : null;
     	ResourceState currentState = hypermediaEngine.determineState(event, getFQResourcePath());
-    	InteractionContext ctx = new InteractionContext(pathParameters, queryParameters, currentState, metadata);
+    	InteractionContext ctx = new InteractionContext(headers, pathParameters, queryParameters, currentState, metadata);
     	return ctx;
 	}
 
@@ -525,7 +526,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 				assert(resource instanceof EntityResource) : "Must be an EntityResource for an auto transition";
 				entity = ((EntityResource<?>)resource).getEntity();
 			}
-    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, entity, pathParameters);
+    		Link target = hypermediaEngine.createLinkToTarget(autoTransition, entity, pathParameters, ctx.getQueryParameters());
 			responseBuilder = HeaderHelper.locationHeader(responseBuilder, target.getHref());
 		} else if (status.equals(Response.Status.CREATED)) {
 			ResourceState currentState = ctx.getCurrentState();
@@ -559,11 +560,22 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
 		} else if (status.getFamily() == Response.Status.Family.SUCCESSFUL) {
 			assert(resource != null);
+			StreamingOutput streamEntity = null;
+			if (resource instanceof EntityResource<?>) {
+				Object entity = ((EntityResource<?>)resource).getEntity();
+				if (entity instanceof StreamingOutput) {
+					streamEntity = (StreamingOutput) entity;
+				}
+			}
     		/*
-    		 * Wrap response into a JAX-RS GenericEntity object to ensure we have the type 
-    		 * information available to the Providers
+    		 * Streaming or Wrap response into a JAX-RS GenericEntity object to ensure 
+    		 * we have the type information available to the Providers
     		 */
-    		responseBuilder.entity(resource.getGenericEntity());
+			if (streamEntity != null) {
+	    		responseBuilder.entity(streamEntity);
+			} else {
+	    		responseBuilder.entity(resource.getGenericEntity());
+			}
     		responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
    			responseBuilder = HeaderHelper.etagHeader(responseBuilder, resource.getEntityTag());
 		} else if((status.getFamily() == Response.Status.Family.CLIENT_ERROR || status.getFamily() == Response.Status.Family.SERVER_ERROR) && ctx != null) {
@@ -590,6 +602,13 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 			responseBuilder = HeaderHelper.allowHeader(responseBuilder, interactions);
     	}
 
+		// add any headers added in the commands
+		if (ctx != null && ctx.getResponseHeaders() != null) {
+			Map<String,String> responseHeaders = ctx.getResponseHeaders();
+			for (String name : responseHeaders.keySet()) {
+				responseBuilder.header(name, responseHeaders.get(name));
+			}
+		}
 		logger.info("Building response " + status.getStatusCode() + " " + status.getReasonPhrase());
 		return responseBuilder.build();
     }
@@ -619,7 +638,7 @@ public class HTTPHypermediaRIM implements HTTPResourceInteractionModel {
 						newPathParameters.add(key, transitionProperties.get(key).toString());
 				}
 			}
-	    	InteractionContext newCtx = new InteractionContext(ctx, newPathParameters, ctx.getQueryParameters(), targetState);
+	    	InteractionContext newCtx = new InteractionContext(ctx, headers, newPathParameters, ctx.getQueryParameters(), targetState);
 			Response response = handleRequest(headers, 
 					newCtx, 
 					event, 

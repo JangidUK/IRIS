@@ -1,0 +1,54 @@
+// the main starting point for our Simple interaction
+domain SimpleModel {
+
+use SimpleModel.Simple.*
+
+rim Home {
+
+event POST {
+	method: POST
+}
+event PUT {
+	method: PUT
+}
+event PATCH {
+	method: POST
+}
+event DELETE {
+	method: DELETE
+}
+event GET {
+	method: GET
+}
+
+command NoopGET
+command GETProfile
+command GETProfileImage
+
+initial resource home {
+	type: item
+	entity: HOME
+	view: NoopGET
+    path: "/"
+	GET -> profile
+}
+
+resource profile {
+	type: item
+	relations [ "http://relations.rimdsl.org/profile" ]
+	entity: Profile
+	view: GETProfile
+	path: "/profile"
+	GET -> image
+}
+
+resource image {
+	type: item
+	relations [ "http://relations.rimdsl.org/image" ]
+	entity: NONE
+	view: GETProfileImage
+	path: "/profile/image"
+}
+
+}
+}

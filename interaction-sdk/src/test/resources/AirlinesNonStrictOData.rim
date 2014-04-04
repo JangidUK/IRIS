@@ -52,7 +52,7 @@ resource Flights {
 	type: collection
 	entity: Flight
 	view: GETEntities {
-		properties [ filter=filter ]
+		properties [ filter="{filter}" ]
 	}
 	path: "/Flights()"
 	POST -> Flights_created
@@ -88,7 +88,7 @@ resource Airports {
 	type: collection
 	entity: Airport
 	view: GETEntities {
-		properties [ filter=filter ]
+		properties [ filter="{filter}" ]
 	}
 	path: "/Airports()"
 	POST -> Airports_created
@@ -131,7 +131,7 @@ resource FlightSchedules {
 	type: collection
 	entity: FlightSchedule
 	view: GETEntities {
-		properties [ filter=filter ]
+		properties [ filter="{filter}" ]
 	}
 	path: "/FlightSchedules()"
 	POST -> FlightSchedules_created
@@ -174,7 +174,7 @@ resource Passengers {
 	type: collection
 	entity: Passenger
 	view: GETEntities {
-		properties [ filter=filter ]
+		properties [ filter="{filter}" ]
 	}
 	path: "/Passengers()"
 	POST -> Passengers_created

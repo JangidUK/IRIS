@@ -36,6 +36,27 @@
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
 	
+    <filter>
+        <filter-name>cross-origin</filter-name>
+        <filter-class>org.eclipse.jetty.servlets.CrossOriginFilter</filter-class>
+        <init-param>
+            <param-name>allowedOrigins</param-name>
+            <param-value>*</param-value>
+        </init-param>
+        <init-param>
+            <param-name>allowedMethods</param-name>
+            <param-value>GET,POST,DELETE,PUT,HEAD</param-value>
+        </init-param>
+        <init-param>
+            <param-name>allowedHeaders</param-name>
+            <param-value>origin,content-type,accept,authorization,maxdataserviceversion</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>cross-origin</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>    
+    
 	<filter>
 		<description>This filter sets the request context for the interaction framework.</description>
 		<filter-name>request-context</filter-name>
@@ -46,6 +67,7 @@
 		<servlet-name>IRIS</servlet-name>
 	</filter-mapping>
 	
+		
 	<servlet>
 		<servlet-name>IRIS</servlet-name>
 		<servlet-class>org.apache.wink.server.internal.servlet.RestServlet</servlet-class>
@@ -54,12 +76,28 @@
 	<servlet>
 		<servlet-name>restSdkAdmin</servlet-name>
 		<servlet-class>org.apache.wink.server.internal.servlet.AdminServlet</servlet-class>
+	</servlet>	
+	
+	<servlet>
+		<servlet-name>SwaggerServlet</servlet-name>
+		<servlet-class>com.temenos.useragent.example.swagger.servlet.SwaggerServlet</servlet-class>
+		<init-param>
+			<param-name>irisUrlMapping</param-name>
+            <param-value>api</param-value>
+    	</init-param>
+  		<load-on-startup>2</load-on-startup>
 	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>SwaggerServlet</servlet-name>
+		<url-pattern>/api-docs</url-pattern>
+	</servlet-mapping>
 
 	<servlet-mapping>
 		<servlet-name>restSdkAdmin</servlet-name>
 		<url-pattern>/admin</url-pattern>
 	</servlet-mapping>
+	
 	<servlet-mapping>
 		<servlet-name>IRIS</servlet-name>
 		<url-pattern>/api/*</url-pattern>

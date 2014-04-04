@@ -22,7 +22,6 @@ event GET {
 }
 
 command NoopGET
-command NoopPOST
 command GETPreferences
 
 initial resource home {

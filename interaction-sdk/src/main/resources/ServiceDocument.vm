@@ -1,0 +1,44 @@
+#####################################################
+## Velocity template for event, command, and resource
+#####################################################
+#foreach ( $rimEvent in ${commands.getRimEvents().entrySet()} )
+	event $rimEvent.getKey() {
+		method: $rimEvent.getValue()
+	}
+#end
+
+#foreach ( $command in $commands.getRIMCommands() )
+	command $command
+#end
+
+initial resource ServiceDocument {
+	type: item
+	entity: ServiceDocument
+	view: GETServiceDocument
+	path: "/"
+#foreach ( $rsm in $rim.getResourceStateMachines() )
+	GET -> #if(${rsm.getRimName()})${rsm.getRimName()}.#end${rsm.getCollectionState().getName()}
+#end
+#foreach ( $state in $rim.getErrorHandlerStates() )
+	GET -> ${state.getName()}
+#end
+}
+
+#if($rim.hasExceptionState())
+exception resource ${rim.getExceptionState().getName()} {
+	type: item
+	entity: InteractionException
+	view: ${rim.getExceptionState().getView()}
+}
+#end
+
+## -----------------------------------------------------
+## Error handlers
+## -----------------------------------------------------
+#foreach ( $state in $rim.getErrorHandlerStates() )
+resource ${state.getName()} {
+	type: collection
+	entity: ${state.getName()}
+	view: ${state.getView()}
+}
+#end

@@ -29,6 +29,7 @@ import org.core4j.Enumerable;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.odata4j.consumer.ODataConsumer;
 import org.odata4j.core.OEntity;
@@ -48,13 +49,39 @@ public class EdmTimeTemporalITCase {
 	private final static String FLIGHT_SCHEDULE_ENTITYSET_NAME = "FlightSchedules";
 	private final static String PASSENGERS_ENTITYSET_NAME = "Passengers";
 
+	private String baseUri = null;
+	private String defaultBaseUri = null;
+
 	public EdmTimeTemporalITCase() throws Exception {
 		super();
 	}
 	
+	@Before
+	public void setup() {
+		baseUri = ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI);
+		defaultBaseUri = ConfigurationHelper.getTestEndpointUri(Configuration.TEST_DEFAULTCOMPANY_ENDPOINT_URI);
+	}
+
 	@Test
 	public void testMetadata() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI)).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(baseUri).build();
+
+		EdmDataServices metadata = consumer.getMetadata();
+
+		Assert.assertEquals(EdmSimpleType.TIME,
+				metadata.findEdmEntitySet(FLIGHT_SCHEDULE_ENTITYSET_NAME).getType()
+						.findProperty("departureTime").getType());
+		Assert.assertEquals(EdmSimpleType.TIME,
+				metadata.findEdmEntitySet(FLIGHT_SCHEDULE_ENTITYSET_NAME).getType()
+						.findProperty("arrivalTime").getType());
+		Assert.assertEquals(EdmSimpleType.DATETIME,
+				metadata.findEdmEntitySet(FLIGHT_SCHEDULE_ENTITYSET_NAME).getType()
+						.findProperty("firstDeparture").getType());
+	}
+
+	@Test
+	public void testDefaultCompanyMetadata() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(defaultBaseUri).build();
 
 		EdmDataServices metadata = consumer.getMetadata();
 
@@ -145,7 +172,20 @@ public class EdmTimeTemporalITCase {
 
 	@Test
 	public void filterTime() {
-		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(ConfigurationHelper.getTestEndpointUri(ConfigurationHelper.getTestEndpointUri(Configuration.TEST_ENDPOINT_URI))).build();
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(baseUri).build();
+
+		Enumerable<OEntity> schedules = consumer
+				.getEntities(FLIGHT_SCHEDULE_ENTITYSET_NAME)
+				.filter("departureTime ge time'PT11H' and departureTime lt time'PT12H'")
+				.execute();
+
+		Assert.assertEquals(2, schedules.count());
+
+	}
+
+	@Test
+	public void defaultCompanyFilterTime() {
+		ODataConsumer consumer = ODataJerseyConsumer.newBuilder(defaultBaseUri).build();
 
 		Enumerable<OEntity> schedules = consumer
 				.getEntities(FLIGHT_SCHEDULE_ENTITYSET_NAME)

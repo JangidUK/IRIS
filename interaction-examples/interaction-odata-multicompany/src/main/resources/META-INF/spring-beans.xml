@@ -46,9 +46,17 @@
 	<bean id="metadataManager" class="com.temenos.interaction.odataext.resource.ResourceMetadataManager">
         <constructor-arg ref="stateMachine" />
 	</bean>
+	<!-- 
 	<bean id="edmDataServices" factory-bean="metadataManager" factory-method="getOData4jMetadata"/>
+	 -->
+	 
 	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
-
+	<!-- Odata4j Metadata -->
+	<bean id="metadataOData4j" class="com.temenos.interaction.odataext.entity.MetadataOData4j">
+        <constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="stateMachine" />
+    </bean>
+    
 	<!-- Import Resource manager context -->
 	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
 	
@@ -68,26 +76,27 @@
         <property name="serviceRoots">
             <set>
                 <ref local="ServiceRoot" />
-                <ref local="Metadata" />
             </set>
         </property>
 	</bean>
 
 	<bean id="atomProvider" class="com.temenos.interaction.media.odata.xml.atom.AtomXMLProvider">
-    	<constructor-arg name="edmDataServices" ref="edmDataServices" />
+    	<constructor-arg name="metadataOData4j" ref="metadataOData4j" />
 		<constructor-arg name="metadata" ref="edmMetadata" />
         <constructor-arg name="hypermediaEngine" ref="stateMachine" />
     	<constructor-arg><bean class="com.temenos.interaction.commands.odata.OEntityTransformer" /></constructor-arg>
 	</bean>
     <bean id="edmxProvider" class="com.temenos.interaction.media.odata.xml.edmx.EdmxMetaDataProvider" />
-	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider" />
+	<bean id="serviceDocumentProvider" class="com.temenos.interaction.media.odata.xml.atomsvc.ServiceDocumentProvider">
+        <constructor-arg name="hypermediaEngine" ref="stateMachine" />
+	</bean>
     <bean id="errorProvider" class="com.temenos.interaction.media.odata.xml.error.ErrorProvider" />
  	<bean id="xhtmlProvider" class="com.temenos.interaction.media.xhtml.XHTMLProvider">
     	<constructor-arg ref="edmMetadata" />
 	</bean>
 
     <!-- Behaviour -->
-    <bean id="behaviour" class="MultiCompanyModel.multicompanyBehaviour" />
+    <bean id="behaviour" class="MultiCompanyModel.baseBehaviour" />
     <bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
     <bean id="exception" factory-bean="behaviour" factory-method="getExceptionResource" />
     <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
@@ -103,39 +112,14 @@
         <constructor-arg ref="edmMetadata" />
     </bean>
 
-    <!-- Define the $metadata resource for OData (note, this is out of band meaning there are no links to the metadata from our service -->
-    <bean id="Metadata" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
-        <constructor-arg ref="commands" />
-        <constructor-arg>
-            <bean class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
-                <constructor-arg>
-                    <bean class="com.temenos.interaction.core.hypermedia.ResourceState">
-                        <constructor-arg name="entityName" value="Metadata" />
-                        <constructor-arg name="name" value="initial" />
-                        <constructor-arg>
-                            <list>
-                                <bean class="com.temenos.interaction.core.hypermedia.Action">
-                                    <constructor-arg value="GETMetadata" />
-                                    <constructor-arg value="VIEW" />
-                                </bean>
-                            </list>
-                        </constructor-arg>
-                        <constructor-arg name="path" value="/{companyid}/$metadata" />
-                    </bean>
-                </constructor-arg>
-            </bean>
-        </constructor-arg>
-        <constructor-arg ref="edmMetadata" />
-    </bean>
-
     <!-- Commands -->
 	<bean id="GETServiceDocument" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="ServiceDocument" />
-		<constructor-arg ref="edmDataServices" />
+		<constructor-arg ref="metadataOData4j" />
 	</bean>
 	<bean id="GETMetadata" class="com.temenos.interaction.commands.odata.GETMetadataCommand">
 		<constructor-arg value="Metadata" />
-		<constructor-arg ref="edmDataServices" />
+		<constructor-arg ref="metadataOData4j" />
 	</bean>
 	<bean id="GETEntity" class="com.temenos.interaction.commands.odata.GETEntityCommand">
 		<constructor-arg name="producer" ref="odataProducer" />
@@ -177,4 +161,3 @@
 		</constructor-arg>
 	</bean>
 </beans>
-

@@ -25,6 +25,8 @@ package com.temenos.interaction.core.entity;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.temenos.interaction.core.resource.ResourceMetadataManager;
+
 /**
  * This class holds metadata information about resource entities.
  */
@@ -35,12 +37,22 @@ public class Metadata  {
 	private Map<String, EntityMetadata> entitiesMetadata = new HashMap<String, EntityMetadata>();
 	private String modelName;
 
+	private ResourceMetadataManager resourceMetadataManager;
+	
 	/**
 	 * Construct a new metadata object
 	 * @param modelName name of this model
+	 * Some unit test are using this
 	 */
 	public Metadata(String modelName) {
 		this.modelName = modelName;
+	}
+
+	/*
+	 * construct metadata with ResourceMetadataManager
+	 */
+	public Metadata(ResourceMetadataManager resourceMetadataManager) {
+		setResourceMetadataManager(resourceMetadataManager);
 	}
 	
 	/**
@@ -48,7 +60,15 @@ public class Metadata  {
 	 * @param entityName Entity name
 	 * @return entity metadata
 	 */
-	public EntityMetadata getEntityMetadata(String entityName) {
+	public EntityMetadata getEntityMetadata(String entityName) {		
+		if( !entitiesMetadata.containsKey(entityName)) {
+			if(resourceMetadataManager == null) {
+				resourceMetadataManager = new ResourceMetadataManager();
+			}
+			Metadata metadata = resourceMetadataManager.getMetadata(entityName);
+			entitiesMetadata.putAll(metadata.getEntitiesMetadata());
+			setModelName(metadata.getModelName());
+		} 
 		return entitiesMetadata.get(entityName);
 	}
 	
@@ -76,4 +96,23 @@ public class Metadata  {
 	public String getModelName() {
 		return modelName;
 	}
+	
+	public void setModelName(String modelName) {
+		this.modelName = modelName;
+	}
+	
+	/*
+	 * setter method 
+	 */
+	public void setResourceMetadataManager(ResourceMetadataManager rmManager) {
+		this.resourceMetadataManager = rmManager;
+	}
+	
+
+	/*
+	 * return metadata
+	 */
+	public Metadata getMetadata() {
+		return this;
+	}	
 }

@@ -38,10 +38,8 @@ import com.temenos.interaction.core.command.InteractionException;
 public class UpdateEntityCommand extends AbstractODataCommand implements InteractionCommand {
 	private final static Logger logger = LoggerFactory.getLogger(UpdateEntityCommand.class);
 
-	private ODataProducer producer;
-
 	public UpdateEntityCommand(ODataProducer producer) {
-		this.producer = producer;
+		super(producer);
 	}
 
 	/* Implement InteractionCommand interface */

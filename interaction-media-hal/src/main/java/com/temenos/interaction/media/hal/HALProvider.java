@@ -82,8 +82,8 @@ import com.theoryinpractise.halbuilder.api.RepresentationFactory;
 import com.theoryinpractise.halbuilder.standard.StandardRepresentationFactory;
 
 @Provider
-@Consumes({com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON})
-@Produces({com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON})
+@Consumes({com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON, MediaType.APPLICATION_JSON})
+@Produces({com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML, com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON, MediaType.APPLICATION_JSON})
 public class HALProvider implements MessageBodyReader<RESTResource>, MessageBodyWriter<RESTResource> {
 	private final Logger logger = LoggerFactory.getLogger(HALProvider.class);
 
@@ -108,8 +108,13 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return ResourceTypeHelper.isType(type, genericType, EntityResource.class)
-				|| ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
+		if (mediaType.equals(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)
+				|| mediaType.equals(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)
+				|| mediaType.equals(MediaType.APPLICATION_JSON_TYPE)) {
+			return ResourceTypeHelper.isType(type, genericType, EntityResource.class)
+					|| ResourceTypeHelper.isType(type, genericType, CollectionResource.class);
+		}
+		return false;
 	}
 
 	@Override
@@ -159,7 +164,16 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 						continue;
 					logger.debug("Link: id=[" + l.getId() + "] rel=[" + l.getRel() + "] method=[" + l.getMethod() + "] href=[" + l.getHref() + "]");
 					// Representation withLink(String rel, String href, String name, String title, String hreflang, String profile);
-					halResource.withLink(l.getRel(), l.getHref(), l.getId(), l.getTitle(), null, null); 
+					String[] rels = new String[0];
+					if (l.getRel() != null) {
+						rels = l.getRel().split(" ");
+					}
+					
+					if (rels != null) {
+						for (int i = 0 ; i < rels.length; i++) {
+							halResource.withLink(rels[i], l.getHref(), l.getId(), l.getTitle(), null, null); 
+						}
+					}
 				}
 			}
 			
@@ -187,6 +201,8 @@ public class HALProvider implements MessageBodyReader<RESTResource>, MessageBody
 		if (halResource != null && mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_XML_TYPE)) {
 			representation = halResource.toString(RepresentationFactory.HAL_XML);
 		} else if (halResource != null && mediaType.isCompatible(com.temenos.interaction.media.hal.MediaType.APPLICATION_HAL_JSON_TYPE)) {
+			representation = halResource.toString(RepresentationFactory.HAL_JSON);
+		} else if (halResource != null && mediaType.isCompatible(MediaType.APPLICATION_JSON_TYPE)) {
 			representation = halResource.toString(RepresentationFactory.HAL_JSON);
 		} else {
 			throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);

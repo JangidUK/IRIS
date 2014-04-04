@@ -170,8 +170,8 @@ public class ResourceStateMachine {
 	
 	
 	public ResourceStateMachine(ResourceState initialState, ResourceState exceptionState, Transformer transformer) {
+		if (initialState == null) throw new RuntimeException("Initial state must be supplied");
 		logger.info("Constructing ResourceStateMachine with initial state ["+initialState+"]");
-		assert(initialState != null);
 		assert(exceptionState == null || exceptionState.isException());
 		this.initial = initialState;
 		this.initial.setInitial(true);
@@ -709,13 +709,19 @@ public class ResourceStateMachine {
 	public Link createLinkToTarget(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		return createLink(transition, entity, pathParameters);
 	}
+	/*
+	 * create link to target preserving the query parameters, useful for redirect
+	 */
+	public Link createLinkToTarget(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters, MultivaluedMap<String, String> queryParameters) {
+		return createLink(transition, entity, pathParameters, queryParameters);
+	}
 
 	/*
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
 	private Link createSelfLink(Transition transition, Object entity, MultivaluedMap<String, String> pathParameters) {
 		TransitionCommandSpec cs = transition.getCommand();
-		return createLink(cs.getPath(), transition, entity, pathParameters);
+		return createLink(cs.getPath(), transition, entity, pathParameters, null);
 	}
 
 	/*
@@ -726,13 +732,16 @@ public class ResourceStateMachine {
 	 * @param map path parameters
 	 * @return link
 	 */
-	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> map) {
-		TransitionCommandSpec cs = transition.getCommand();
-		return createLink(cs.getPath(), transition, entity, map);
+	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters) {
+		return createLink(transition, entity, transitionParameters, null);
 	}
-	private Link createLink(String resourcePath, Transition transition, Object entity, MultivaluedMap<String, String> map) {
-		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, map);
-		return createLink(resourcePath, transition, transitionProperties, entity);
+	public Link createLink(Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters) {
+		TransitionCommandSpec cs = transition.getCommand();
+		return createLink(cs.getPath(), transition, entity, transitionParameters, queryParameters);
+	}
+	private Link createLink(String resourcePath, Transition transition, Object entity, MultivaluedMap<String, String> transitionParameters, MultivaluedMap<String, String> queryParameters) {
+		Map<String, Object> transitionProperties = getTransitionProperties(transition, entity, transitionParameters);
+		return createLink(resourcePath, transition, transitionProperties, entity, queryParameters);
 	}
 
 	/*
@@ -746,7 +755,7 @@ public class ResourceStateMachine {
 	 * @return link
 	 * @precondition {@link RequestContext} must have been initialised
 	 */
-	private Link createLink(String resourcePath, Transition transition, Map<String, Object> transitionProperties, Object entity) {
+	private Link createLink(String resourcePath, Transition transition, Map<String, Object> transitionProperties, Object entity, MultivaluedMap<String, String> queryParameters) {
 		assert(RequestContext.getRequestContext() != null);
 		TransitionCommandSpec cs = transition.getCommand();
 		UriBuilder linkTemplate = UriBuilder.fromUri(RequestContext.getRequestContext().getBasePath())
@@ -761,6 +770,13 @@ public class ResourceStateMachine {
 			//Add template elements in linkage properties e.g. filter=fld eq {code} as query parameters
 			Map<String, String> linkParameters = transition.getCommand().getUriParameters();
 			setQueryParameters(linkTemplate, linkParameters, transitionProperties, resourcePath);
+			
+			// Pass any query parameters
+			if (queryParameters != null) {
+				for (String param : queryParameters.keySet()) {
+					linkTemplate.queryParam(param, queryParameters.getFirst(param));
+				}
+			}
 			
 			//Build href from template
 			URI href;

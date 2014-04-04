@@ -43,7 +43,8 @@ public class ResourceMetadataManager {
 	private final static String METADATA_XML_FILE = "metadata.xml";
 
 	private Metadata metadata = null;
-
+	private TermFactory termFactory = null;
+	
 	/**
 	 * Construct the metadata object
 	 */
@@ -74,7 +75,35 @@ public class ResourceMetadataManager {
 	public ResourceMetadataManager(ResourceStateMachine hypermediaEngine, TermFactory termFactory)
 	{
 		metadata = parseMetadataXML(termFactory);
+		this.termFactory = termFactory;
 	}
+	
+	/*
+	 * construct termFactory & Metadata
+	 */
+	public ResourceMetadataManager(TermFactory termFactory, Metadata entityMetadata)
+	{
+		this.termFactory = termFactory;
+		this.metadata = entityMetadata;
+	}
+	
+
+	/*
+	 * construct only term factory
+	 */
+ 	public ResourceMetadataManager()
+	{
+		termFactory = new TermFactory();
+	}
+
+	/*
+	 * construct only term factory
+	 */
+ 	public ResourceMetadataManager(TermFactory termFactory)
+	{
+		this.termFactory = termFactory;
+	}
+ 	
 	
 	/**
 	 * Return the entity model metadata
@@ -123,5 +152,47 @@ public class ResourceMetadataManager {
 			throw new RuntimeException("Failed to parse metadata xml: " + e.getMessage());
 		}
 	}
+	
+	
+	/*
+	 *  get metadadata
+	 */
+	public Metadata getMetadata(String entityName) {
+		if(termFactory == null) {
+			logger.error("TermFactory Missing");
+			throw new RuntimeException("TermFactory Missing");
+		}
+		return parseMetadataXML(entityName, termFactory);
+	}
 
+	
+	/*
+	 * Parse the XML entity metadata file
+	 */
+	protected Metadata parseMetadataXML(String entityName, TermFactory termFactory) {
+		String metadataFilename;
+		if(entityName == null ) {
+			logger.error(entityName + " entity name received, loading " + METADATA_XML_FILE);
+			metadataFilename = METADATA_XML_FILE;
+		} else {
+			metadataFilename = "metadata-" + entityName + ".xml";
+		}
+		
+		try {
+			InputStream is = getClass().getClassLoader().getResourceAsStream(metadataFilename);
+			if(is == null) {
+				logger.error("Unable to load " + metadataFilename + " from classpath.");
+				is = getClass().getClassLoader().getResourceAsStream(METADATA_XML_FILE);
+				if(is == null) {
+					logger.error("Unable to load " + METADATA_XML_FILE + " from classpath.");
+					throw new Exception("Unable to load " + metadataFilename + " and " + METADATA_XML_FILE + " from classpath.");
+				}
+			}
+			return new MetadataParser(termFactory).parse(is);
+		}
+		catch(Exception e) {
+			logger.error("Failed to parse " + metadataFilename + ": " + e.getMessage());
+			throw new RuntimeException("Failed to parse " + metadataFilename + ": " + e.getMessage());
+		}
+	}
 }

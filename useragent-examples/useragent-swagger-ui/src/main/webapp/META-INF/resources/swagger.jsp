@@ -22,7 +22,7 @@
     response.setHeader("Access-Control-Allow-Origin", "*");
     response.setHeader("Access-Control-Allow-Headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With");
     response.setHeader("Access-Control-Allow-Methods", "GET, PUT, POST");
-	request.setAttribute("API_DOCS_URL", request.getContextPath() + "/api-docs.json");
+	request.setAttribute("API_DOCS_URL", request.getContextPath() + "/api-docs");
 %>
 <!DOCTYPE html>
 <html>

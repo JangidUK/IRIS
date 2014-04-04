@@ -22,6 +22,8 @@ package com.temenos.interaction.sdk.rimdsl;
  */
 
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -30,12 +32,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.io.CharStreams;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
 import com.temenos.interaction.sdk.JPAResponderGen;
@@ -51,6 +55,8 @@ import com.temenos.interaction.sdk.interaction.InteractionModel;
  * Unit test for {@link RimDslGenerator}.
  */
 public class TestRimDslGenerator {
+	private final static String RIM_LINE_SEP = System.getProperty("line.separator");
+
 	public final static String METADATA_AIRLINE_XML_FILE = "AirlinesMetadata.xml";
 	public final static String RIM_DSL_AIRLINE_SIMPLE_FILE = "AirlinesSimple.rim";
 	public final static String RIM_DSL_AIRLINE_FILE = "Airlines.rim";
@@ -96,16 +102,81 @@ public class TestRimDslGenerator {
 	
 	@Test
 	public void testGenerateRimDslAirlines() {
-		String dsl = createAirlineModelDSL(true, null);
-		
+		InteractionModel interactionModel = createAirlineModelDSL(null);
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		String dsl = generator.generateRimDsl(interactionModel, JPAResponderGen.getDefaultCommands(), true);
+
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
 		assertEquals(readTextFile(RIM_DSL_AIRLINE_FILE), dsl);
 	}
 
 	@Test
+	public void testGenerateRimDslMapAirlines() {
+		InteractionModel interactionModel = createAirlineModelDSL(null);
+		interactionModel.findResourceStateMachine("FlightSchedule").setRimName("Flight_Schedule");
+		interactionModel.findResourceStateMachine("Passenger").setRimName("Passenger");
+
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		// returns a map of specified resource state machine name and dsl
+		Map<String,String> dslMap = generator.generateRimDslMap(interactionModel, JPAResponderGen.getDefaultCommands(), true);
+
+		String rimDSL = null;
+		// check results for ServiceDocument
+		String root = interactionModel.getName();
+		rimDSL = dslMap.get(root);
+		assertTrue(rimDSL.contains("event GET"));
+		assertTrue(rimDSL.contains("initial resource ServiceDocument"));
+		assertTrue(rimDSL.contains("GET -> Flight_Schedule.FlightSchedules"));
+		assertFalse(rimDSL.contains("resource FlightSchedules"));
+		assertTrue(rimDSL.contains("GET -> Flights"));
+		assertTrue(rimDSL.contains("GET -> Passenger.Passengers"));
+		assertFalse(rimDSL.contains("resource Passengers"));
+		assertTrue(rimDSL.contains("GET *-> flightschedule_departureAirport {"));
+		
+		// check results for FlightSchedules
+		rimDSL = dslMap.get("Flight_Schedule");
+		assertTrue(rimDSL.contains("rim Flight_Schedule {"));
+		assertTrue(rimDSL.contains("event GET"));
+		assertTrue(rimDSL.contains("resource FlightSchedules"));
+		assertTrue(rimDSL.contains("GET *-> flightschedule {" + RIM_LINE_SEP
+				+ "\t\tparameters [ id=\"{flightScheduleID}\" ]" + RIM_LINE_SEP
+				+ "\t}"));
+		assertTrue(rimDSL.contains("resource flightschedule_departureAirport"));
+		assertTrue(rimDSL.contains("path: \"/FlightSchedules({id})/departureAirport\""));
+
+		// check results for Passengers
+		rimDSL = dslMap.get("Passenger");
+		assertTrue(rimDSL.contains("rim Passenger {"));
+		assertTrue(rimDSL.contains("resource Passengers"));
+	}
+
+	@Test
+	public void testGenerateRimDslMapAirlinesOnError() {
+		InteractionModel interactionModel = createAirlineModelDSL(null);
+		// flight defines an onerror
+		interactionModel.findResourceStateMachine("Flight").setRimName("Flight");
+
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		// returns a map of specified resource state machine name and dsl
+		Map<String,String> dslMap = generator.generateRimDslMap(interactionModel, JPAResponderGen.getDefaultCommands(), true);
+
+		// check results for Flight
+		String rimDSL = dslMap.get("Flight");
+		assertTrue(rimDSL.contains("rim Flight {"));
+		assertTrue(rimDSL.contains("onerror --> FlightResponder.ErrorMessages"));
+
+	}
+
+	@Test
 	public void testGenerateRimDslDomain() {
-		String dsl = createAirlineModelDSL(true, "airline");
+		InteractionModel interactionModel = createAirlineModelDSL("airline");
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		String dsl = generator.generateRimDsl(interactionModel, JPAResponderGen.getDefaultCommands(), true);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
@@ -114,7 +185,10 @@ public class TestRimDslGenerator {
 
 	@Test
 	public void testGenerateRimDslAirlinesNonStrictOData() {
-		String dsl = createAirlineModelDSL(false, null);
+		InteractionModel interactionModel = createAirlineModelDSL(null);
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		String dsl = generator.generateRimDsl(interactionModel, JPAResponderGen.getDefaultCommands(), false);
 		
 		//Check results
 		assertTrue(dsl != null && !dsl.equals(""));
@@ -165,7 +239,7 @@ public class TestRimDslGenerator {
 		assertEquals(readTextFile(RIM_DSL_BANKING_FILE), dsl);
 	}
 	
-	public String createAirlineModelDSL(boolean strictOData, String domain) {
+	public InteractionModel createAirlineModelDSL(String domain) {
 		//Define the basic interaction model based on the available metadata
 		Metadata metadata = parseMetadata(METADATA_AIRLINE_XML_FILE);
 		InteractionModel interactionModel = new InteractionModel(metadata);
@@ -197,9 +271,7 @@ public class TestRimDslGenerator {
 		IMState rsflightCreated = rsmFlight.getPseudoState("Flights", "created");
 		rsflightCreated.setErrorHandlerState(rsResponseErrors);
 		
-		//Run the generator
-		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
-		return generator.generateRimDsl(interactionModel, JPAResponderGen.getDefaultCommands(), strictOData);
+		return interactionModel;
 	}
 	
 	/*
@@ -243,4 +315,57 @@ public class TestRimDslGenerator {
 		}
 		return sb.toString();		
 	}
+	
+	@Test
+	public void testGetRIM() {
+		//Parse the test metadata
+		MetadataParser parser = new MetadataParser();
+		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_AIRLINE_XML_FILE);
+		Metadata metadata = parser.parse(is);
+		Assert.assertNotNull(metadata);
+
+		//Define the interaction model
+		InteractionModel interactionModel = new InteractionModel(metadata);
+
+		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
+		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
+		IMResourceStateMachine rsmFlight = interactionModel.findResourceStateMachine("Flight");
+		IMResourceStateMachine rsmPassenger = interactionModel.findResourceStateMachine("Passenger");
+		rsmFlight.addTransitionToEntityState("flight", rsmFlightSchedule, "flightschedule", "flightScheduleNum", null);
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "departureAirport", "departureAirportCode", null);
+		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", null);
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", "departureAirportCode", null);
+		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", "arrivalAirportCode", null);
+		rsmPassenger.addTransitionToEntityState("passenger", rsmFlight, "flight", "flightID", null);
+		
+		//Run the generator
+		RimDslGenerator generator = new RimDslGenerator(createVelocityEngine());
+		Commands commands = JPAResponderGen.getDefaultCommands();
+		String rimDSL = null;
+		try {
+			InputStream isRimDsl = generator.getRIM(interactionModel, commands, true);
+			assertNotNull(isRimDsl);
+
+			rimDSL = CharStreams.toString(new InputStreamReader(isRimDsl, "UTF-8"));
+		}
+		catch(Exception age) {
+			fail(age.getMessage());
+		}
+
+		//Check the rim dsl
+		assertTrue(rimDSL.contains("initial resource ServiceDocument"));
+		assertTrue(rimDSL.contains("GET -> FlightSchedules"));
+		assertTrue(rimDSL.contains("resource FlightSchedules"));
+		assertTrue(rimDSL.contains("GET *-> flightschedule {" + RIM_LINE_SEP
+				+ "\t\tparameters [ id=\"{flightScheduleID}\" ]" + RIM_LINE_SEP
+				+ "\t}"));
+		assertTrue(rimDSL.contains("GET *-> flightschedule_departureAirport {" + RIM_LINE_SEP
+				+ "\t\tparameters [ id=\"{flightScheduleID}\" ]" + RIM_LINE_SEP
+				+ "\t}"));
+		assertTrue(rimDSL.contains("resource flightschedule_departureAirport"));
+		assertTrue(rimDSL.contains("path: \"/FlightSchedules({id})/departureAirport\""));
+		assertTrue(rimDSL.contains("GET -> Passengers"));
+		assertTrue(rimDSL.contains("resource Passengers"));
+	}
+
 }

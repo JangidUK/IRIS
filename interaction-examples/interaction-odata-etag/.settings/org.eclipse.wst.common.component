@@ -4,29 +4,28 @@
         <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
-        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/java"/>
-        <dependent-module archiveName="interaction-core-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-core/interaction-core">
+        <dependent-module archiveName="interaction-core-0.5.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-core/interaction-core">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="interaction-winkext-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-winkext/interaction-winkext">
+        <dependent-module archiveName="interaction-winkext-0.5.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-winkext/interaction-winkext">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="interaction-odata4j-ext-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-odata4j-ext/interaction-odata4j-ext">
+        <dependent-module archiveName="interaction-odata4j-ext-0.5.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-odata4j-ext/interaction-odata4j-ext">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="interaction-commands-odata-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-commands-odata/interaction-commands-odata">
+        <dependent-module archiveName="interaction-commands-odata-0.5.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-commands-odata/interaction-commands-odata">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="interaction-sdk-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-sdk/interaction-sdk">
+        <dependent-module archiveName="interaction-sdk-0.5.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-sdk/interaction-sdk">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="interaction-media-xhtml-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-media-xhtml/interaction-media-xhtml">
+        <dependent-module archiveName="interaction-media-xhtml-0.5.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-media-xhtml/interaction-media-xhtml">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="interaction-media-odata-xml-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-media-odata-xml/interaction-media-odata-xml">
+        <dependent-module archiveName="interaction-media-odata-xml-0.5.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/interaction-media-odata-xml/interaction-media-odata-xml">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module archiveName="useragent-odata-html5-0.4.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/useragent-odata-html5/useragent-odata-html5">
+        <dependent-module archiveName="useragent-odata-html5-0.5.0-SNAPSHOT.jar" deploy-path="/WEB-INF/lib" handle="module:/resource/useragent-odata-html5/useragent-odata-html5">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="context-root" value="interaction-odata-etag"/>

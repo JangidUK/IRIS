@@ -45,6 +45,7 @@ import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexGroup;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermComplexType;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermListType;
+import com.temenos.interaction.core.entity.vocabulary.terms.TermMandatory;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 
 /**
@@ -270,6 +271,8 @@ public class EntityMetadata  {
 		String termValueType = getTermValue(propertyName, TermValueType.TERM_NAME);
 		if(propertyValue == null) {
 			value = "";
+		} else if (propertyValue instanceof String) {
+			return propertyValue.toString();
 		}
 		else if(termValueType.equals(TermValueType.TEXT) ||
 				termValueType.equals(TermValueType.RECURRENCE) ||
@@ -365,26 +368,34 @@ public class EntityMetadata  {
 	 * @return Entity property
 	 */
 	public EntityProperty createEmptyEntityProperty(String propertyName) {
-		String termValue = getTermValue(propertyName, TermValueType.TERM_NAME);
-		if(termValue.equals(TermValueType.INTEGER_NUMBER)) {
-			return new EntityProperty(propertyName, new Long(0));
+		boolean isNullable = isPropertyNullable(propertyName);
+		// If not nullable then initialise properly
+		if (!isNullable) {
+			String termValue = getTermValue(propertyName, TermValueType.TERM_NAME);
+			if(termValue.equals(TermValueType.INTEGER_NUMBER)) {
+				return new EntityProperty(propertyName, new Long(0));
+			}
+			else if(termValue.equals(TermValueType.NUMBER)) {
+				return new EntityProperty(propertyName, new Double(0.0));
+			}
+			else if(termValue.equals(TermValueType.BOOLEAN)) {
+				return new EntityProperty(propertyName, new Boolean(false));
+			}
+			else if(termValue.equals(TermValueType.TIMESTAMP) ||
+					termValue.equals(TermValueType.DATE) ||
+					termValue.equals(TermValueType.TIME)) {
+				return new EntityProperty(propertyName, new Date());
+			}
+			else if(termValue.equals(TermValueType.ENUMERATION)) {
+				String[] enumValues = {};
+				return new EntityProperty(propertyName, enumValues);
+			} else {
+				return new EntityProperty(propertyName, "");
+			}
+		} else {
+			// Leave it empty
+			return new EntityProperty(propertyName, null);
 		}
-		else if(termValue.equals(TermValueType.NUMBER)) {
-			return new EntityProperty(propertyName, new Double(0.0));
-		}
-		else if(termValue.equals(TermValueType.BOOLEAN)) {
-			return new EntityProperty(propertyName, new Boolean(false));
-		}
-		else if(termValue.equals(TermValueType.TIMESTAMP) ||
-				termValue.equals(TermValueType.DATE) ||
-				termValue.equals(TermValueType.TIME)) {
-			return new EntityProperty(propertyName, new Date());
-		}
-		else if(termValue.equals(TermValueType.ENUMERATION)) {
-			String[] enumValues = {};
-			return new EntityProperty(propertyName, enumValues);
-		}		
-		return new EntityProperty(propertyName, "");
 	}
 	
 	/**
@@ -395,5 +406,15 @@ public class EntityMetadata  {
 	 */
 	public String getSimplePropertyName(String fullyQualifiedPropertyName) {
 		return propertyNames.get(fullyQualifiedPropertyName);
+	}
+	
+	/**
+	 * Method to find out if property is nullable
+	 * @param fullyQualifiedPropertyName
+	 * @return
+	 */
+	public boolean isPropertyNullable(String fullyQualifiedPropertyName) {
+		return !(getTermValue(fullyQualifiedPropertyName, TermMandatory.TERM_NAME).equals("true") || 
+				getTermValue(fullyQualifiedPropertyName, TermIdField.TERM_NAME).equals("true"));
 	}
 }

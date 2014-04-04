@@ -32,6 +32,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import com.temenos.interaction.core.entity.Metadata;
+import com.temenos.interaction.core.entity.vocabulary.TermFactory;
 import com.temenos.interaction.core.hypermedia.ResourceStateMachine;
 
 public class TestResourceMetadataManager {
@@ -47,5 +48,20 @@ public class TestResourceMetadataManager {
 		Metadata metadata = mdProducer.getMetadata();
 		assertNotNull(metadata);
 	}
+	
+	@Test
+	public void testCurrencyList() throws Exception {
+		TermFactory termFactory  = new TermFactory();
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager(termFactory);
+		Metadata metadata = mdProducer.getMetadata("CountryList");
+		assertNotNull(metadata);
+	}
 
+	@Test
+	public void testCustomerInfo() throws Exception {
+		TermFactory termFactory  = new TermFactory();
+		ResourceMetadataManager mdProducer = new ResourceMetadataManager(termFactory);
+		Metadata metadata = mdProducer.getMetadata("CustomerInfo");
+		assertNotNull(metadata);
+	}
 }

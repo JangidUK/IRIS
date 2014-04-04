@@ -58,6 +58,7 @@ import com.temenos.interaction.rimdsl.rim.RelationRef;
 import com.temenos.interaction.rimdsl.rim.ResourceInteractionModel;
 import com.temenos.interaction.rimdsl.rim.State;
 import com.temenos.interaction.rimdsl.rim.Transition;
+import com.temenos.interaction.rimdsl.rim.UriLink;
 
 @InjectWith(RIMDslInjectorProvider.class)
 @RunWith(XtextRunner.class)
@@ -259,6 +260,51 @@ public class ParserTest {
 		assertEquals(2, model.getStates().size());
 		State aState = model.getStates().get(0);
 	    assertEquals("A", aState.getName());
+
+	    // there should one transition from state A to state B
+		assertEquals(1, aState.getTransitions().size());
+		assertEquals("B", aState.getTransitions().get(0).getState().getName());
+	}
+
+	private final static String TRANSITION_WITH_URI_CHARACTERS_PARAMETERS_RIM = "" +
+			"rim Test {" + LINE_SEP +
+			"	command GetEntity" + LINE_SEP +
+			"	command GetEntities" + LINE_SEP +
+					
+			"initial resource A {" + LINE_SEP +
+			"	type: collection" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntities" + LINE_SEP +
+			"	GET -> B {" + LINE_SEP +
+			"		parameters [ filter=\"CustomerCode eq '{Id}'\" ]" + LINE_SEP +
+			"	}" + LINE_SEP +
+			"}" + LINE_SEP +
+
+			"resource B {" +
+			"	type: item" + LINE_SEP +
+			"	entity: ENTITY" + LINE_SEP +
+			"	view: GetEntity {" + LINE_SEP +
+			"		properties [ filter=\"{filter}\" ]" + LINE_SEP +
+			"	}" + LINE_SEP +
+			"}" + LINE_SEP +
+			"}" + LINE_SEP +  // end rim
+			"";
+
+	@Test
+	public void testParseStatesWithTransitionUriCharactersParameters() throws Exception {
+		DomainModel domainModel = parser.parse(TRANSITION_WITH_URI_CHARACTERS_PARAMETERS_RIM);
+		ResourceInteractionModel model = (ResourceInteractionModel) domainModel.getRims().get(0);
+		EList<Resource.Diagnostic> errors = model.eResource().getErrors();
+		assertEquals(0, errors.size());
+		
+		// there should be exactly two states
+		assertEquals(2, model.getStates().size());
+		State aState = model.getStates().get(0);
+	    assertEquals("A", aState.getName());
+	    EList<UriLink> uriLinks = aState.getTransitions().get(0).getSpec().getUriLinks();
+	    assertEquals(1, uriLinks.size());
+	    assertEquals("filter", uriLinks.get(0).getTemplateProperty());
+	    assertEquals("CustomerCode eq '{Id}'", uriLinks.get(0).getEntityProperty().getName());
 
 	    // there should one transition from state A to state B
 		assertEquals(1, aState.getTransitions().size());
@@ -596,6 +642,7 @@ public class ParserTest {
 			"	         view: NoopGET" + LINE_SEP +
 			"	         GET -> ONE.A" + LINE_SEP +
 			"	         GET -> A" + LINE_SEP +
+			"	         onerror --> ONE.A" + LINE_SEP +
 			"        }" + LINE_SEP +
 			"    }" + LINE_SEP +  // end rim
 			"}" + LINE_SEP +  // end domain

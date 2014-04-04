@@ -32,9 +32,13 @@ import java.util.regex.Pattern;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.temenos.interaction.core.MultivaluedMapImpl;
 
 public class HypermediaTemplateHelper {
+	private final static Logger logger = LoggerFactory.getLogger(HypermediaTemplateHelper.class);
 
 	// regex for uri template pattern
 	public static Pattern TEMPLATE_PATTERN = Pattern.compile("\\{(.*?)\\}");
@@ -78,22 +82,27 @@ public class HypermediaTemplateHelper {
 	}
 	
 	/**
-	 * Similar to UriBuilder, but used for simple template token replacement.
+	 * Similar to UriBuilder, but used for simple template token replacement where
+	 * supplied template is not a uri, and not all tokens need to be replaced.
 	 * @param template
 	 * @param properties
 	 * @return
 	 */
 	public static String templateReplace(String template, Map<String, Object> properties) {
 		String result = template;
-		if (template != null && template.contains("{") && template.contains("}")) {
-			Matcher m = TEMPLATE_PATTERN.matcher(template);
-			while(m.find()) {
-				String param = m.group(1);
-				if (properties.containsKey(param)) {
-					// replace template tokens
-					result = template.replaceAll("\\{" + param + "\\}", properties.get(param).toString());
+		try {
+			if (template != null && template.contains("{") && template.contains("}")) {
+				Matcher m = TEMPLATE_PATTERN.matcher(template);
+				while(m.find()) {
+					String param = m.group(1);
+					if (properties.containsKey(param)) {
+						// replace template tokens
+						result = template.replaceAll("\\{" + param + "\\}", properties.get(param).toString());
+					}
 				}
 			}
+		} catch (Exception e) {
+			logger.error("An error occurred while replacing tokens in ["+template+"]", e);
 		}
 		return result;
 	}

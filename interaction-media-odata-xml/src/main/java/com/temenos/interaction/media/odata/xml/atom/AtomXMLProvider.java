@@ -91,6 +91,7 @@ import com.temenos.interaction.core.resource.EntityResource;
 import com.temenos.interaction.core.resource.RESTResource;
 import com.temenos.interaction.core.resource.ResourceTypeHelper;
 import com.temenos.interaction.core.web.RequestContext;
+import com.temenos.interaction.odataext.entity.MetadataOData4j;
 
 @Provider
 @Consumes({MediaType.APPLICATION_ATOM_XML})
@@ -107,7 +108,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	private AtomFeedFormatWriter feedWriter;
 	private AtomEntityEntryFormatWriter entityEntryWriter;
 	
-	private final EdmDataServices edmDataServices;
+	private final MetadataOData4j metadataOData4j;
+	private EdmDataServices edmDataServices;
 	private final Metadata metadata;
 	private final ResourceStateMachine hypermediaEngine;
 	private final ResourceState serviceDocument;
@@ -125,6 +127,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 	 * @param transformer
 	 * 		Transformer to convert an entity to a properties map
 	 */
+	//TODO - Delete this
+//	@Deprecated
 	public AtomXMLProvider(EdmDataServices edmDataServices, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
 		this.edmDataServices = edmDataServices;
 		this.metadata = metadata;
@@ -139,15 +143,35 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		entryWriter = new AtomEntryFormatWriter(serviceDocument);
 		feedWriter = new AtomFeedFormatWriter(serviceDocument);
 		entityEntryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
-
+		metadataOData4j = null;
 	}
 	
+	public AtomXMLProvider(MetadataOData4j metadataOData4j, Metadata metadata, ResourceStateMachine hypermediaEngine, Transformer transformer) {
+		this.metadataOData4j = metadataOData4j;
+		this.metadata = metadata;
+		this.hypermediaEngine = hypermediaEngine;
+		this.serviceDocument = hypermediaEngine.getResourceStateByName("ServiceDocument");
+		if (serviceDocument == null)
+			throw new RuntimeException("No 'ServiceDocument' found.");
+		assert(metadata != null);
+		assert(hypermediaEngine != null);
+		this.transformer = transformer;
+		entryWriter = new AtomEntryFormatWriter(serviceDocument);
+		feedWriter = new AtomFeedFormatWriter(serviceDocument);
+		entityEntryWriter = new AtomEntityEntryFormatWriter(serviceDocument, metadata);
+		edmDataServices = null;
+	}
+
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return 	ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
-				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class) ||
-				ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class);
+		if (mediaType.isCompatible(MediaType.APPLICATION_ATOM_XML_TYPE) 
+				|| mediaType.equals(MediaType.APPLICATION_XML_TYPE)) {
+			return 	ResourceTypeHelper.isType(type, genericType, EntityResource.class) ||
+					ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class) ||
+					ResourceTypeHelper.isType(type, genericType, CollectionResource.class, Entity.class);
+		}
+		return false;
 	}
 
 	@Override
@@ -174,7 +198,6 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			WebApplicationException {
 		assert (resource != null);
 		assert(uriInfo != null);
-		
 		//Set response headers
 		if(httpHeaders != null) {
 			httpHeaders.putSingle(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_ATOM_XML);		//Workaround for https://issues.apache.org/jira/browse/WINK-374
@@ -187,8 +210,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 				EntityResource<OEntity> entityResource = (EntityResource<OEntity>) resource;
 				OEntity tempEntity = entityResource.getEntity();
 				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + entityResource.getEntityName();
-				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
+				EdmEntityType entityType = (EdmEntityType) getEdmDataService().findEdmEntityType(fqName);
+				EdmEntitySet entitySet = getEdmDataService().getEdmEntitySet(entityType);
 				List<OLink> olinks = formOLinks(entityResource);
 				//Write entry
 	        	// create OEntity with our EdmEntitySet see issue https://github.com/aphethean/IRIS/issues/20
@@ -219,8 +242,8 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			} else if(ResourceTypeHelper.isType(type, genericType, CollectionResource.class, OEntity.class)) {
 				CollectionResource<OEntity> collectionResource = ((CollectionResource<OEntity>) resource);
 				String fqName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + collectionResource.getEntityName();
-				EdmEntityType entityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqName);
-				EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entityType);
+				EdmEntityType entityType = (EdmEntityType) getEdmDataService().findEdmEntityType(fqName);
+				EdmEntitySet entitySet = getEdmDataService().getEdmEntitySet(entityType);
 				List<EntityResource<OEntity>> collectionEntities = (List<EntityResource<OEntity>>) collectionResource.getEntities();
 				List<OEntity> entities = new ArrayList<OEntity>();
 				for (EntityResource<OEntity> collectionEntity : collectionEntities) {
@@ -468,7 +491,7 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 			// Lets parse the request content
 			Reader reader = new InputStreamReader(verifiedStream);
 			assert(entitySetName != null) : "Must have found a resource or thrown exception";
-			Entry e = new AtomEntryFormatParserExt(edmDataServices, entitySetName, entityKey, null).parse(reader);
+			Entry e = new AtomEntryFormatParserExt(getEdmDataService(), entitySetName, entityKey, null).parse(reader);
 			
 			return new EntityResource<OEntity>(e.getEntity());
 		} catch (IllegalStateException e) {
@@ -485,9 +508,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		String entitySetName = null;
 		String fqTargetEntityName = metadata.getModelName() + Metadata.MODEL_SUFFIX + "." + state.getEntityName();
 		try {
-			EdmEntityType targetEntityType = (EdmEntityType) edmDataServices.findEdmEntityType(fqTargetEntityName);
+			EdmEntityType targetEntityType = (EdmEntityType) getEdmDataService().findEdmEntityType(fqTargetEntityName);
 			if (targetEntityType != null) {
-				EdmEntitySet targetEntitySet = edmDataServices.getEdmEntitySet(targetEntityType);
+				EdmEntitySet targetEntitySet = getEdmDataService().getEdmEntitySet(targetEntityType);
 				if (targetEntitySet != null)
 					entitySetName = targetEntitySet.getName();
 			} else {
@@ -641,4 +664,9 @@ public class AtomXMLProvider implements MessageBodyReader<RESTResource>, Message
 		return uriInfo.getBaseUri() + uriInfo.getPath();
 	}
 	
+	private EdmDataServices getEdmDataService() {
+		if( edmDataServices == null )
+			edmDataServices = metadataOData4j.getMetadata();
+		return edmDataServices;
+	}
 }

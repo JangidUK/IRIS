@@ -15,8 +15,8 @@ rim Simple {
 		method: DELETE
 	}
 
+	command CREATENote
 	command NoopGET
-	command NoopPOST
 	command GETNotes
 	command GETNote
 	command DELETENote
@@ -26,7 +26,7 @@ resource notes {
 	entity: Note
 	view: GETNotes
 	path: "/notes"
-    POST -> newNote
+    POST -> createNote
 	GET *-> note
 	DELETE *-> deletedNote
 }
@@ -48,13 +48,16 @@ resource deletedNote {
 	GET --> notes
 }
 
-resource newNote {
-    type: item
-	entity: ID
-    actions [ NoopPOST ]
-	relations [ "http://relations.rimdsl.org/new" ]
-    path: "/notes/new"
-    PUT --> note
+resource createNote {
+	type: item
+	entity: Note
+	actions [ CREATENote ]
+	path: "/notes"
+	// 'create' means post to the collection, 'new' means get the next available number
+	relations [ "http://relations.rimdsl.org/create" ]
+	GET --> note {
+		condition: OK(note)
+	}
 }
 
 }

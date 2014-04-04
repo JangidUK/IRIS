@@ -5,7 +5,7 @@
   <parent>
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.4.0-SNAPSHOT</version>
+	<version>0.5.0-SNAPSHOT</version>
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
@@ -28,7 +28,7 @@
       <plugin>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-sdk-plugin</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
+        <version>0.5.0-SNAPSHOT</version>
         <configuration>
           <edmxFile>${basedir}/src/main/resources/edmx.xml</edmxFile>
           <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
@@ -48,18 +48,22 @@
 				</execution>
 			</executions>
 		</plugin>
-
 		<!-- Configure the jetty plugin to run an instance of our responder 'mvn jetty:run' -->
 		<plugin>
-			<groupId>org.mortbay.jetty</groupId>
-			<artifactId>maven-jetty-plugin</artifactId>
-			<version>6.1.26</version>
-  			<configuration>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-maven-plugin</artifactId>
+			<version>9.0.5.v20130815</version>
+			<configuration>
 				<scanIntervalSeconds>10</scanIntervalSeconds>
 				<stopPort>8005</stopPort>
 				<stopKey>STOP</stopKey>
-  				<!-- Configure the webapp -->
-				<contextPath>/northwind</contextPath>
+				<webApp>
+					<!-- Configure the webapp root -->
+					<contextPath>/northwind</contextPath>
+					<resourceBases>
+						<resourceBase>${basedir}/src/main/webapp</resourceBase>
+					</resourceBases>
+				</webApp>
 			</configuration>
 			<executions>
 				<execution>

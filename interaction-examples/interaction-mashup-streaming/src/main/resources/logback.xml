@@ -1,0 +1,79 @@
+<!--
+  #%L
+  interaction-example-mashup-streaming
+  %%
+  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+<!-- Logback configuration -->
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </layout>
+  </appender>
+
+  <!-- Log debug information about links -->
+  <logger name="com.temenos.interaction.core.hypermedia">
+    <level value="DEBUG" />
+  </logger>
+  <logger name="com.temenos.interaction.core.media.hal">
+    <level value="DEBUG" />
+  </logger>
+  <!-- Log debug information about resource interactions -->
+  <logger name="com.temenos.interaction.core.rim">
+    <level value="DEBUG" />
+  </logger>
+
+  <!-- Log all resource endpoints -->
+  <logger name="org.apache.wink.server.internal.log.Resources">
+    <level value="DEBUG" />
+  </logger>
+  <!-- Log all requests -->
+  <logger name="org.apache.wink.server.internal.log.Requests">
+    <level value="DEBUG" />
+  </logger>
+
+  <logger name="org.apache.wink.common">
+    <level value="WARN" />
+    <appender-ref ref="STDOUT"/>
+  </logger>
+
+  <!-- Log all SQL DML statements as they are executed -->
+  <logger name="org.hibernate.SQL">
+    <level value="INFO" />
+    <appender-ref ref="STDOUT"/>
+  </logger>  
+  
+  <!-- Log all second-level cache activity -->
+  <logger name="org.hibernate.cache">
+    <level value="WARN" />
+    <appender-ref ref="STDOUT"/>
+  </logger>   
+  
+  <!-- Log everything -->
+  <logger name="org.hibernate">
+    <level value="WARN" />
+    <appender-ref ref="STDOUT"/>
+  </logger>
+  
+  <root> 
+    <level value="WARN" />
+    <appender-ref ref="STDOUT" />
+  </root>
+</configuration>
+

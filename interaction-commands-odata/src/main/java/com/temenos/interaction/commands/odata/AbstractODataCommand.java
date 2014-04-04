@@ -22,16 +22,24 @@ package com.temenos.interaction.commands.odata;
  */
 
 
+import org.odata4j.edm.EdmDataServices;
+import org.odata4j.producer.ODataProducer;
+
 import com.temenos.interaction.core.command.InteractionContext;
 import com.temenos.interaction.core.hypermedia.Action;
 
 public abstract class AbstractODataCommand {
-
 	/**
 	 * Use this property to configure an action to use this entity 
 	 * instead of the entity specified for the Resource.
 	 */
 	public final static String ENTITY_PROPERTY = "entity";
+	protected ODataProducer producer; 
+	
+	public AbstractODataCommand(ODataProducer producer) {
+		this.producer = producer;
+	}
+
 	
 	public String getEntityName(InteractionContext ctx) {
 		String entityName = ctx.getCurrentState().getEntityName();
@@ -44,6 +52,10 @@ public abstract class AbstractODataCommand {
 			entityName = action.getProperties().getProperty(ENTITY_PROPERTY);
 		}
 		return entityName;
+	}
+	
+	protected EdmDataServices getEdmMetadata() {
+		return producer.getMetadata();
 	}
 	
 }

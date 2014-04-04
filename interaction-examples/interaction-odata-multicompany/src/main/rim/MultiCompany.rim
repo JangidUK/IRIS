@@ -1,4 +1,71 @@
 domain MultiCompanyModel {
+	
+	rim base {
+
+		event GET {
+			method: GET
+		}
+
+		command NoopGET
+
+		// A simple resource to start our resource graph
+		initial resource Base {
+			type: item
+			entity: ServiceDocument
+			view: NoopGET
+			GET -> defaultcompany.ServiceDocumentBase
+			GET -> defaultcompany.MetadataBase
+			GET -> defaultcompany.FlightSchedulesBase
+		}
+
+	}
+	
+	rim defaultcompany {
+
+		event GET {
+			method: GET
+		}
+
+		command NoopGET
+
+		// Redirect the / entry point to the default company service root
+		resource ServiceDocumentBase {
+			type: item
+			entity: ServiceDocument
+			view: NoopGET
+			path: "/$metadata"
+			// redirect to the /{companyid}/$metadata
+			GET --> MultiCompanyModel.multicompany.ServiceDocument {
+				parameters [ companyid="MockCompany001" ]
+			}
+		}
+
+		// Redirect the /$metadata entry point to the default company $metadata
+		resource MetadataBase {
+			type: item
+			entity: Metadata
+			view: NoopGET
+			path: "/$metadata"
+			// redirect to the /{companyid}/$metadata
+			GET --> MultiCompanyModel.multicompany.ODataMetadata {
+				parameters [ companyid="MockCompany001" ]
+			}
+		}
+
+		// to support a default company service approach you need a redirect for each entity set
+		resource FlightSchedulesBase {
+			type: item
+			entity: Metadata
+			view: NoopGET
+			path: "/FlightSchedules()"
+			// redirect to the /{companyid}/FlightSchedules()
+			GET --> MultiCompanyModel.multicompany.FlightSchedules {
+				parameters [ companyid="MockCompany001" ]
+			}
+		}
+		
+	}
+	
 	rim multicompany {
 
 		basepath: "/{companyid}"
@@ -25,6 +92,7 @@ domain MultiCompanyModel {
 		command UpdateEntity
 		command DeleteEntity
 		command NoopGET
+		command GETMetadata
 
 		initial resource ServiceDocument {
 			type: item
@@ -35,6 +103,15 @@ domain MultiCompanyModel {
 			GET -> Flights
 			GET -> FlightSchedules
 			GET -> Passengers
+		}
+
+		// Define the $metadata resource for OData 
+		// (note, this is an out of band resoruce meaning there are no links to the metadata from our service
+		resource ODataMetadata {
+			type: item
+			entity: Metadata
+			view: GETMetadata
+			path: "/$metadata"
 		}
 
 		resource Airports {

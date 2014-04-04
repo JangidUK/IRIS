@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  #%L
+  interaction-example-mashup-streaming
+  %%
+  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="
+		http://www.springframework.org/schema/util 
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-3.0.xsd">
+
+	<!-- Read property files -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:responder.properties</value>
+			</list>
+		</property>
+		<property name="ignoreUnresolvablePlaceholders" value="true"/>
+	</bean>
+
+	<!-- Metadata -->	
+	<bean id="metadataManager" class="com.temenos.interaction.core.resource.ResourceMetadataManager">
+        <constructor-arg ref="stateMachine" />
+	</bean>
+	<bean id="edmMetadata" factory-bean="metadataManager" factory-method="getMetadata"/>
+
+	<!-- Import Resource manager context -->
+	<import resource="classpath:/META-INF/resourcemanager-context.xml" />
+	
+    <!-- Persistence manager -->
+    <bean id="persistence" class="com.temenos.interaction.example.mashup.streaming.Persistence" >
+        <constructor-arg ref="entityManagerFactory" />
+    </bean>
+	
+    <!--
+	  An extension of org.apache.wink.spring.Registrar with support for singletons.
+    -->
+	<bean class="com.temenos.interaction.winkext.RegistrarWithSingletons">
+		<property name="singletons">
+        	<set>
+				<ref local="halProvider" />
+ 			</set>
+   		</property>
+		<property name="serviceRoot" ref="ServiceRoot" />
+	</bean>
+
+	<bean id="halProvider" class="com.temenos.interaction.media.hal.HALProvider">
+    	<constructor-arg ref="edmMetadata" />
+        <constructor-arg ref="stateMachine" />
+	</bean>
+
+    <bean id="behaviour" class="SimpleModel.HomeBehaviour" />
+<!--
+    <bean id="behaviour" class="com.temenos.interaction.example.hateoas.simple.Behaviour" />
+-->
+    <bean id="interaction" factory-bean="behaviour" factory-method="getRIM" />
+    <bean id="stateMachine" class="com.temenos.interaction.core.hypermedia.ResourceStateMachine">
+    	<constructor-arg ref="interaction" />
+        <constructor-arg><bean class="com.temenos.interaction.core.hypermedia.BeanTransformer" /></constructor-arg>
+    </bean>
+
+    <!-- Resources -->
+    <bean id="ServiceRoot" class="com.temenos.interaction.core.rim.HTTPHypermediaRIM">
+        <constructor-arg ref="commands" />
+    	<constructor-arg ref="stateMachine" />
+        <constructor-arg ref="edmMetadata" />
+    </bean>
+
+    <!-- Commands -->
+	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand" />
+	<bean id="GETProfile" class="com.temenos.interaction.example.mashup.streaming.GETProfileCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
+	<bean id="GETProfileImage" class="com.temenos.interaction.example.mashup.streaming.GETProfileImageCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
+
+	<!-- Resource commands -->
+	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
+		<constructor-arg name="commands">
+			<util:map id="commandsMap" map-class="java.util.Hashtable">
+				<entry key="NoopGET" value-ref="NoopGET" />
+				<entry key="GETProfile" value-ref="GETProfile" />
+				<entry key="GETProfileImage" value-ref="GETProfileImage" />
+			</util:map> 
+		</constructor-arg>
+	</bean>
+	
+</beans>

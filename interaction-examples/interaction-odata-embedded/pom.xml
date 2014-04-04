@@ -25,7 +25,7 @@
   <parent>
 	<groupId>com.temenos.interaction</groupId>
 	<artifactId>interaction-parent</artifactId>
-	<version>0.4.0-SNAPSHOT</version>
+	<version>0.5.0-SNAPSHOT</version>
 	<relativePath>../../interaction-parent/pom.xml</relativePath>
   </parent>
 
@@ -62,7 +62,7 @@
       <plugin>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-sdk-plugin</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
+        <version>0.5.0-SNAPSHOT</version>
         <configuration>
           <edmxFile>${basedir}/service.edmx</edmxFile>
           <srcTargetDirectory>${basedir}/src/main/java</srcTargetDirectory>
@@ -73,7 +73,7 @@
       <plugin>
         <groupId>com.temenos.interaction</groupId>
         <artifactId>interaction-sdk-rim-plugin</artifactId>
-        <version>0.4.0-SNAPSHOT</version>
+        <version>0.5.0-SNAPSHOT</version>
         <executions>
           <!-- Generate the Java source from the RIM during each build -->
           <execution>
@@ -105,38 +105,44 @@
         </executions>
       </plugin>
 
-      <!-- Configure the jetty plugin to run an instance of our responder 'mvn jetty:run' -->
-      <plugin>
-        <groupId>org.mortbay.jetty</groupId>
-        <artifactId>maven-jetty-plugin</artifactId>
-        <version>6.1.26</version>
-        <configuration>
-          <stopPort>8005</stopPort>
-          <stopKey>STOP</stopKey>
-          <!-- Configure the webapp -->
-          <contextPath>/example</contextPath>
-        </configuration>
-        <executions>
-          <execution>
-            <id>start-jetty</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <scanIntervalSeconds>0</scanIntervalSeconds>
-              <daemon>true</daemon>
-            </configuration>
-          </execution>
-          <execution>
-            <id>stop-jetty</id>
-            <phase>post-integration-test</phase>
-            <goals>
-              <goal>stop</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
+		<!-- Configure the jetty plugin to run an instance of our responder 'mvn jetty:run' -->
+		<plugin>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-maven-plugin</artifactId>
+			<version>9.0.5.v20130815</version>
+			<configuration>
+				<scanIntervalSeconds>10</scanIntervalSeconds>
+				<stopPort>8005</stopPort>
+				<stopKey>STOP</stopKey>
+				<webApp>
+					<!-- Configure the webapp root -->
+					<contextPath>/example</contextPath>
+					<resourceBases>
+						<resourceBase>${basedir}/src/main/webapp</resourceBase>
+					</resourceBases>
+				</webApp>
+			</configuration>
+			<executions>
+				<execution>
+					<id>start-jetty</id>
+					<phase>pre-integration-test</phase>
+					<goals>
+						<goal>run</goal>
+					</goals>
+					<configuration>
+						<scanIntervalSeconds>0</scanIntervalSeconds>
+						<daemon>true</daemon>
+					</configuration>
+				</execution>
+				<execution>
+					<id>stop-jetty</id>
+					<phase>post-integration-test</phase>
+					<goals>
+						<goal>stop</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
 
       <!-- Configure the maven compiler -->
       <plugin>
@@ -190,7 +196,7 @@
     									interaction-sdk-rim-plugin
     								</artifactId>
     								<versionRange>
-    									[0.4.0-SNAPSHOT,)
+    									[0.5.0-SNAPSHOT,)
     								</versionRange>
     								<goals>
     									<goal>rim-generate</goal>

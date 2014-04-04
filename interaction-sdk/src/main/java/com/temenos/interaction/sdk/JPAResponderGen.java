@@ -21,8 +21,6 @@ package com.temenos.interaction.sdk;
  * #L%
  */
 
-
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,6 +29,8 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -78,6 +78,11 @@ import com.temenos.interaction.sdk.util.IndentationFormatter;
  */
 public class JPAResponderGen {
 
+	// generator properties
+	public final static String PROPERTY_KEY_ROOT = "com.temenos.interaction.sdk";
+	public final static String STRICT_ODATA_KEY = "strictodata";
+	public final static String REGENERATE_OUTPUT_KEY = "regenerate";
+	
 	public final static String JPA_CONFIG_FILE = "jpa-persistence.xml";
 	public final static String SPRING_CONFIG_FILE = "spring-beans.xml";
 	public final static String SPRING_RESOURCEMANAGER_FILE = "resourcemanager-context.xml";
@@ -87,12 +92,13 @@ public class JPAResponderGen {
 	public final static String METADATA_FILE = "metadata.xml";
 
 	public final static Parameter COMMAND_SERVICE_DOCUMENT = new Parameter("ServiceDocument", false, "");
-	public final static Parameter COMMAND_EDM_DATA_SERVICES = new Parameter("edmDataServices", true, "");
+	public final static Parameter COMMAND_METADATA_ODATA4J = new Parameter("metadataOData4j", true, "");
 	public final static Parameter COMMAND_METADATA = new Parameter("Metadata", false, "");
 	public final static Parameter COMMAND_METADATA_SOURCE_ODATAPRODUCER = new Parameter("producer", true, "odataProducer");
 	public final static Parameter COMMAND_METADATA_SOURCE_MODEL = new Parameter("edmMetadata", true, "edmMetadata");
 			
-	private final boolean strictOData; 		//Indicates whether it should generate strict odata paths etc. (e.g. Flight(1)/flightschedule rather than FlightSchedule(2051))
+	private boolean strictOData; 		//Indicates whether it should generate strict odata paths etc. (e.g. Flight(1)/flightschedule rather than FlightSchedule(2051))
+	private boolean overwriteAllOutput = true;
 	
 	/*
 	 *  create a new instance of the engine
@@ -111,7 +117,23 @@ public class JPAResponderGen {
 	 * @param strictOData indicates whether to generate a strict odata model
 	 */
 	public JPAResponderGen(boolean strictOData) {
-		this.strictOData = strictOData;
+		Properties props = new Properties();
+		if (strictOData)
+			props.put(PROPERTY_KEY_ROOT + "." + STRICT_ODATA_KEY, "true");
+		initialise(props);
+	}
+
+	/**
+	 * Construct an instance of this class
+	 * @param strictOData indicates whether to generate a strict odata model
+	 */
+	public JPAResponderGen(Properties props) {
+		initialise(props);		
+	}
+
+	protected void initialise(Properties props) {
+		strictOData = isKeyTrue(props.get(PROPERTY_KEY_ROOT + "." + STRICT_ODATA_KEY));
+		overwriteAllOutput = isKeyTrue(props.get(PROPERTY_KEY_ROOT + "." + REGENERATE_OUTPUT_KEY));
 		
 		// load .vm templates using classloader
 		ve.setProperty(VelocityEngine.RESOURCE_LOADER, "classpath");
@@ -119,6 +141,9 @@ public class JPAResponderGen {
 		ve.init();
 	}
 	
+	private boolean isKeyTrue(Object keyValue) {
+		return (keyValue != null && keyValue.toString().equalsIgnoreCase("true"));
+	}
 
 	
 	/**
@@ -222,16 +247,20 @@ public class JPAResponderGen {
 	}
 	
 	/**
-	 * Returns a character stream representing the RIM from the conceptual interaction and metadata models.
-	 * @param interactionModel Conceptual interaction model
-	 * @param commands Commands
-	 * @return RIM as character stream 
-	 * @throws Exception
+	 * see {@link RimDslGenerator#getRIM(InteractionModel, Commands)}
 	 */
 	public InputStream getRIM(InteractionModel interactionModel, Commands commands) throws Exception {
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
-		String dsl = rimDslGenerator.generateRimDsl(interactionModel, commands, strictOData);
-		return new ByteArrayInputStream(dsl.getBytes());
+		return rimDslGenerator.getRIM(interactionModel, commands, strictOData);
+	}
+	
+	/**
+	 * see {@link RimDslGenerator#generateRimDslMap(InteractionModel, Commands)}
+	 */
+	public Map<String,String> getRIMsMap(InteractionModel interactionModel, Commands commands) {
+		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
+		Map<String,String> rims = rimDslGenerator.generateRimDslMap(interactionModel, commands, strictOData);
+		return rims;
 	}
 	
 	private boolean writeArtefacts(String modelName, List<EntityInfo> entitiesInfo, Commands commands, EntityModel entityModel, InteractionModel interactionModel, File srcOutputPath, File configOutputPath, boolean generateMockResponder) {
@@ -254,9 +283,14 @@ public class JPAResponderGen {
 
 		// generate the rim DSL
 		RimDslGenerator rimDslGenerator = new RimDslGenerator(ve);
-		String rimDslFilename = modelName + ".rim";
-		if (!writeRimDsl(configOutputPath, rimDslFilename, rimDslGenerator.generateRimDsl(interactionModel, commands, strictOData))) {
-			ok = false;
+		Map<String,String> rims = rimDslGenerator.generateRimDslMap(interactionModel, commands, strictOData);
+		for (String key : rims.keySet()) {
+			String rimDslFilename = key + ".rim";
+			if (!writeRimDsl(configOutputPath, rimDslFilename, rims.get(key))) {
+				System.out.print("Failed to write " + key);
+				ok = false;
+				break;
+			}
 		}
 
 		if(generateMockResponder) {
@@ -595,7 +629,7 @@ public class JPAResponderGen {
 			File dir = new File(sourceDir.getPath());
 			dir.mkdirs();
 			File f = new File(dir, rimDslFilename);
-			if(!f.exists()) {
+			if(overwriteAllOutput || !f.exists()) {
 				fos = new FileOutputStream(f);
 				fos.write(generatedRimDsl.getBytes("UTF-8"));
 			}
@@ -803,8 +837,8 @@ public class JPAResponderGen {
 		commands.addRimEvent("DELETE", Commands.HTTP_COMMAND_DELETE);
 		
 		//Add commands
-		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_SERVICE_DOCUMENT, COMMAND_EDM_DATA_SERVICES);
-		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_METADATA, COMMAND_EDM_DATA_SERVICES);
+		commands.addCommand(Commands.GET_SERVICE_DOCUMENT, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_SERVICE_DOCUMENT, COMMAND_METADATA_ODATA4J);
+		commands.addCommand(Commands.GET_METADATA, "com.temenos.interaction.commands.odata.GETMetadataCommand", COMMAND_METADATA, COMMAND_METADATA_ODATA4J);
 		commands.addCommand(Commands.GET_EXCEPTION, "com.temenos.interaction.core.command.GETExceptionCommand");
 		commands.addCommand(Commands.GET_NOOP, "com.temenos.interaction.core.command.NoopGETCommand");
 		commands.addCommand(Commands.GET_ENTITY, "com.temenos.interaction.commands.odata.GETEntityCommand", COMMAND_METADATA_SOURCE_ODATAPRODUCER);

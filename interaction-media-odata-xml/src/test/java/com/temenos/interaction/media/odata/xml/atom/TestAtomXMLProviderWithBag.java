@@ -115,13 +115,18 @@ public class TestAtomXMLProviderWithBag {
 		edmMetadata = null;
 	}
 	
+	private AtomXMLProvider getAtomXMLProvider(Metadata metadata, ResourceStateMachine rsm) {
+		return new AtomXMLProvider(new	MetadataOData4j(metadata, rsm), metadata, rsm, new OEntityTransformer());
+	}
+	
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void testReadPathWithCollection() throws Exception {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_NAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 		
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		//AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
@@ -173,7 +178,8 @@ public class TestAtomXMLProviderWithBag {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_NAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
 
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		//AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));
 		when(mockUriInfo.getPath()).thenReturn("/" + TELLER_ENTITY_SETNAME);
@@ -261,7 +267,8 @@ public class TestAtomXMLProviderWithBag {
 	public void testEntryRepAsCollection() throws Exception {
 		ResourceStateMachine rsm = getResourceStateMachine(TELLER_ENTITY_NAME);
 		GenericEntity<EntityResource<OEntity>> ge = new GenericEntity<EntityResource<OEntity>>(new EntityResource<OEntity>(null)) {};
-		AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		//AtomXMLProvider ap = new AtomXMLProvider(edmMetadata, metadata, rsm, new OEntityTransformer());
+		AtomXMLProvider ap = getAtomXMLProvider(metadata, rsm);
 		
 		UriInfo mockUriInfo = mock(UriInfo.class);
 		when(mockUriInfo.getBaseUri()).thenReturn(new URI("http://www.temenos.com/rest.svc/"));

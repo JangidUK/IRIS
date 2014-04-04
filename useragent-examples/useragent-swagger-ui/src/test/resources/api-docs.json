@@ -1,0 +1,21 @@
+{
+  "apiVersion": "0.2",
+  "swaggerVersion": "1.2",
+  "resourcePath": "/A",
+  "apis": [{
+    "path": "/A",
+    "operations": [{
+      "method": "GET",
+      "nickname": "A"
+    }]
+  }, {
+    "path": "/B",
+    "operations": [{
+      "method": "POST",
+      "nickname": "B"
+    }, {
+      "method": "GET",
+      "nickname": "B"
+    }]
+  }]
+}

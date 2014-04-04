@@ -23,21 +23,17 @@ package com.temenos.interaction.sdk;
 
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.google.common.io.CharStreams;
 import com.temenos.interaction.core.entity.EntityMetadata;
 import com.temenos.interaction.core.entity.Metadata;
 import com.temenos.interaction.core.entity.MetadataParser;
@@ -45,7 +41,6 @@ import com.temenos.interaction.core.entity.vocabulary.Vocabulary;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermIdField;
 import com.temenos.interaction.core.entity.vocabulary.terms.TermValueType;
 import com.temenos.interaction.sdk.adapter.edmx.EDMXAdapter;
-import com.temenos.interaction.sdk.command.Commands;
 import com.temenos.interaction.sdk.interaction.IMResourceStateMachine;
 import com.temenos.interaction.sdk.interaction.InteractionModel;
 
@@ -603,55 +598,4 @@ public class TestJPAResponderGen {
 
 	}
 	
-	@Test
-	public void testGetRIM() {
-		//Parse the test metadata
-		MetadataParser parser = new MetadataParser();
-		InputStream is = parser.getClass().getClassLoader().getResourceAsStream(METADATA_AIRLINE_XML_FILE);
-		Metadata metadata = parser.parse(is);
-		Assert.assertNotNull(metadata);
-
-		//Define the interaction model
-		InteractionModel interactionModel = new InteractionModel(metadata);
-
-		IMResourceStateMachine rsmFlightSchedule = interactionModel.findResourceStateMachine("FlightSchedule");
-		IMResourceStateMachine rsmAirport = interactionModel.findResourceStateMachine("Airport");
-		IMResourceStateMachine rsmFlight = interactionModel.findResourceStateMachine("Flight");
-		IMResourceStateMachine rsmPassenger = interactionModel.findResourceStateMachine("Passenger");
-		rsmFlight.addTransitionToEntityState("flight", rsmFlightSchedule, "flightschedule", "flightScheduleNum", null);
-		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "departureAirport", "departureAirportCode", null);
-		rsmFlightSchedule.addTransitionToEntityState("flightschedule", rsmAirport, "arrivalAirport", "arrivalAirportCode", null);
-		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "departures", "departureAirportCode eq '{code}'", "departureAirportCode", null);
-		rsmAirport.addTransitionToCollectionState("airport", rsmFlightSchedule, "arrivals", "arrivalAirportCode eq '{code}'", "arrivalAirportCode", null);
-		rsmPassenger.addTransitionToEntityState("passenger", rsmFlight, "flight", "flightID", null);
-		
-		//Run the generator
-		JPAResponderGen generator = new JPAResponderGen(true);
-		Commands commands = JPAResponderGen.getDefaultCommands();
-		String rimDSL = null;
-		try {
-			InputStream isRimDsl = generator.getRIM(interactionModel, commands);
-			assertNotNull(isRimDsl);
-
-			rimDSL = CharStreams.toString(new InputStreamReader(isRimDsl, "UTF-8"));
-		}
-		catch(Exception age) {
-			fail(age.getMessage());
-		}
-
-		//Check the rim dsl
-		assertTrue(rimDSL.contains("initial resource ServiceDocument"));
-		assertTrue(rimDSL.contains("GET -> FlightSchedules"));
-		assertTrue(rimDSL.contains("resource FlightSchedules"));
-		assertTrue(rimDSL.contains("GET *-> flightschedule {" + RIM_LINE_SEP
-				+ "\t\tparameters [ id=\"{flightScheduleID}\" ]" + RIM_LINE_SEP
-				+ "\t}"));
-		assertTrue(rimDSL.contains("GET *-> flightschedule_departureAirport {" + RIM_LINE_SEP
-				+ "\t\tparameters [ id=\"{flightScheduleID}\" ]" + RIM_LINE_SEP
-				+ "\t}"));
-		assertTrue(rimDSL.contains("resource flightschedule_departureAirport"));
-		assertTrue(rimDSL.contains("path: \"/FlightSchedules({id})/departureAirport\""));
-		assertTrue(rimDSL.contains("GET -> Passengers"));
-		assertTrue(rimDSL.contains("resource Passengers"));
-	}
 }

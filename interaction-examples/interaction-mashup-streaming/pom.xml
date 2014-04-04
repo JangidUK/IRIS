@@ -1,0 +1,350 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+	<groupId>com.temenos.interaction</groupId>
+	<artifactId>interaction-parent</artifactId>
+	<version>0.5.0-SNAPSHOT</version>
+	<relativePath>../../interaction-parent/pom.xml</relativePath>
+  </parent>
+
+  <groupId>com.temenos.interaction.example</groupId>
+  <artifactId>interaction-mashup-streaming</artifactId>
+  <packaging>war</packaging>
+
+  <name>interaction-example-mashup-streaming</name>
+  <url>http://www.temenos.com</url>
+
+  <properties>
+    <jetty.version>9.0.5.v20130815</jetty.version>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals><goal>add-source</goal></goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/src-gen</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.1.1</version>
+        <configuration>
+          <packagingExcludes>WEB-INF/web.xml</packagingExcludes>
+          <webResources>
+            <resource>
+              <directory>target/swagger-gen</directory>
+            </resource>
+          </webResources>
+        </configuration>
+      </plugin>   
+      <plugin>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>interaction-sdk-rim-plugin</artifactId>
+        <version>${project.version}</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>rim-generate</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
+          <targetDirectory>${basedir}/src-gen</targetDirectory> 
+          -->
+          <rimSourceDir>${basedir}/src/main/rim/</rimSourceDir>
+          <!-- Override the default [swaggerTargetDirectory] of ${project.build.directory}/swagger-gen
+          <swaggerTargetDirectory>${basedir}/src/main/webapp/</swaggerTargetDirectory>
+          -->
+          <skipSwaggerGeneration>false</skipSwaggerGeneration>
+        </configuration>
+      </plugin>
+
+      <plugin>
+         <artifactId>maven-failsafe-plugin</artifactId>
+         <version>2.6</version>
+         <executions>
+           <execution>
+             <goals>
+               <goal>integration-test</goal>
+               <goal>verify</goal>
+             </goals>
+           </execution>
+         </executions>
+       </plugin>
+      
+      <!-- Configure the jetty plugin to run an instance of our responder 'mvn jetty:run' -->
+      <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>${jetty.version}</version>
+		<configuration>
+          <scanIntervalSeconds>10</scanIntervalSeconds>
+          <stopPort>8005</stopPort>
+          <stopKey>STOP</stopKey>
+          <webApp>
+			<!-- Configure the webapp root -->
+			<contextPath>/example</contextPath>
+            <resourceBases>
+              <resourceBase>${basedir}/src/main/webapp</resourceBase>
+              <resourceBase>${basedir}/target/swagger-gen</resourceBase>
+            </resourceBases>
+          </webApp>
+		</configuration>
+		<executions>
+			<execution>
+				<id>start-jetty</id>
+				<phase>pre-integration-test</phase>
+				<goals>
+					<goal>run</goal>
+				</goals>
+				<configuration>
+					<scanIntervalSeconds>0</scanIntervalSeconds>
+					<daemon>true</daemon>
+				</configuration>
+			</execution>
+			<execution>
+				<id>stop-jetty</id>
+				<phase>post-integration-test</phase>
+				<goals>
+					<goal>stop</goal>
+				</goals>
+			</execution>
+		</executions>
+      </plugin>
+       <!--  Skip the deployment -->
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-deploy-plugin</artifactId>
+			<configuration>
+					<skip>true</skip>
+			</configuration>
+		</plugin>  
+    </plugins>
+    <pluginManagement>
+    	<plugins>
+    		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+    		<plugin>
+    			<groupId>org.eclipse.m2e</groupId>
+    			<artifactId>lifecycle-mapping</artifactId>
+    			<version>1.0.0</version>
+    			<configuration>
+    				<lifecycleMappingMetadata>
+    					<pluginExecutions>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>org.codehaus.mojo</groupId>
+    								<artifactId>
+    									build-helper-maven-plugin
+    								</artifactId>
+    								<versionRange>[1.7,)</versionRange>
+    								<goals>
+    									<goal>add-source</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									com.temenos.interaction
+    								</groupId>
+    								<artifactId>
+    									interaction-sdk-plugin
+    								</artifactId>
+    								<versionRange>
+    									[0.5.0-SNAPSHOT,)
+    								</versionRange>
+    								<goals>
+    									<goal>rim-generate</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    						<pluginExecution>
+    							<pluginExecutionFilter>
+    								<groupId>
+    									com.temenos.interaction
+    								</groupId>
+    								<artifactId>
+    									interaction-sdk-rim-plugin
+    								</artifactId>
+    								<versionRange>
+    									[0.5.0-SNAPSHOT,)
+    								</versionRange>
+    								<goals>
+    									<goal>rim-generate</goal>
+    								</goals>
+    							</pluginExecutionFilter>
+    							<action>
+    								<ignore></ignore>
+    							</action>
+    						</pluginExecution>
+    					</pluginExecutions>
+    				</lifecycleMappingMetadata>
+    			</configuration>
+    		</plugin>
+    	</plugins>
+    </pluginManagement>
+  </build>
+
+  <repositories>
+    <repository>
+      <id>eclipserepo</id>
+      <name>eclipserepo</name>
+        <!-- note that ampersands in this URL are escaped because this is in an xml file -
+             un-escape them to use in browser 
+        -->
+      <url>http://www.eclipse.org/downloads/download.php?r=1&amp;nf=1&amp;file=/rt/eclipselink/maven.repo</url>
+    </repository>
+  </repositories>
+  <dependencies>
+  
+    <dependency>
+	    <groupId>commons-io</groupId>
+	    <artifactId>commons-io</artifactId>
+	    <version>2.4</version>
+    </dependency>
+              
+    <!-- Add dependency for our javascript user-agent -->
+    <dependency>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>useragent-generic-javascript</artifactId>
+    </dependency>
+    <!-- Add dependency for our HAL inspector user-agent -->
+    <dependency>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>useragent-hal-inspector</artifactId>
+    </dependency>
+    <!-- Add dependency for the Swagger user-agent -->
+    <dependency>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>useragent-swagger-ui</artifactId>
+    </dependency>
+
+    <!-- Add dependency for our hal provider -->
+    <dependency>
+        <groupId>com.temenos.interaction</groupId>
+        <artifactId>interaction-media-hal</artifactId>
+        <scope>compile</scope>
+    </dependency>
+
+    <!-- Add dependency for jetty-servlet Access-Control-Allow-Origin filter -->
+    <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-servlets</artifactId>
+        <version>${jetty.version}</version>
+        <scope>runtime</scope>
+    </dependency>
+
+    <!-- IRIS -->
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-core</artifactId>
+    	<type>jar</type>
+    </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-commands-odata</artifactId>
+    	<type>jar</type>
+    </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-winkext</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+    	<groupId>com.temenos.interaction</groupId>
+    	<artifactId>interaction-sdk</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    	<exclusions>
+    		<exclusion>
+    			<artifactId>maven-plugin-api</artifactId>
+				<groupId>org.apache.maven</groupId>
+			</exclusion>
+		</exclusions>
+    </dependency>
+
+	<!-- Test dependencies -->
+    <dependency>
+    	<groupId>com.sun.jersey.test.framework</groupId>
+    	<artifactId>jersey-test-framework</artifactId>
+    	<scope>test</scope>
+    </dependency>
+
+    <dependency>
+    	<groupId>org.apache.wink</groupId>
+    	<artifactId>wink-spring-support</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>halbuilder-standard</artifactId>
+    </dependency>
+
+    <!-- The dependency for JPA (note - this comes from the eclipse repository as Sun licensed this jar??) -->
+    <dependency>
+      <groupId>org.eclipse.persistence</groupId>
+      <artifactId>javax.persistence</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    
+    <!-- Responder inmemory database -->
+    <dependency>
+    	<groupId>hsqldb</groupId>
+    	<artifactId>hsqldb</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+    	<groupId>org.hibernate</groupId>
+    	<artifactId>hibernate-entitymanager</artifactId>
+    	<type>jar</type>
+    	<scope>runtime</scope>
+    </dependency>
+
+    <!-- LOGGING DEPENDENCIES -->
+    <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>   
+    </dependency>
+    <dependency>
+    	<groupId>ch.qos.logback</groupId>
+    	<artifactId>logback-classic</artifactId>
+    	<scope>runtime</scope>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-orm</artifactId>
+        <scope>runtime</scope>
+    </dependency>
+    <dependency>
+    	<groupId>net.sf.ehcache</groupId>
+    	<artifactId>ehcache-core</artifactId>
+    </dependency>
+
+  </dependencies>
+  
+</project>

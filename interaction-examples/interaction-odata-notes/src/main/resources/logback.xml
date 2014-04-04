@@ -36,6 +36,10 @@
     <level value="INFO" />
   </logger>
 
+  <!-- Log DEBUG for CORS headers -->
+  <logger name="org.eclipse.jetty.servlets.CrossOriginFilter">
+    <level value="DEBUG" />
+  </logger>
   <!-- Log all resource endpoints -->
   <logger name="org.apache.wink.server.internal.log.Resources">
     <level value="INFO" />

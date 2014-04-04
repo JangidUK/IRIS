@@ -35,7 +35,7 @@ ResourceInteractionModel:
 	        (events += Event)*
     	    & (commands += Command)*
     	    // MAY define a 'basepath:'
-            & basepath=BasePath?
+            & (basepath=BasePath)?
         	& (relations += Relation)*
         	& (states += State)*
        	)
@@ -49,13 +49,23 @@ Event:
 ;
 
 Command:
-	'command' name=ID ('{' 
+	'command' name=ID (spec=CommandSpec)?
+;
+
+CommandSpec:
+	(
+	'{'
+		// force create of the container object i.e. CommandSpec
+        {CommandSpec}
+        (
         'properties' '[' ((properties+=CommandProperty) (',' properties+=CommandProperty)* ) ']'
-    '}')?
+        )
+    '}'
+    )
 ;
 
 CommandProperty:
-    name=ID '=' (value=ID | value=STRING)
+    name=ID '=' (value=ID | value=DQ_STRING)
 ;
 
 BasePath:
@@ -67,9 +77,9 @@ Relation:
     	// elements can appear in any order
     	(
     		// MUST define 'fqn:'
-	     	'fqn:' fqn=STRING
+	     	'fqn:' fqn=DQ_STRING
 	     	// MAY define 'description:'
-    	 	& ('description:' description=STRING)?
+    	 	& ('description:' description=DQ_STRING)?
      	)
     '}'	
 ;
@@ -90,7 +100,7 @@ State:
                 // MAY define one or more transitions
                 & transitions+=TransitionRef*
                 // MAY define an onerror transition
-                & ('onerror' '-->' errorState=[State])?
+                & ('onerror' '-->' errorState=[State|QualifiedName])?
     	)
     '}'
 ;
@@ -166,7 +176,7 @@ RelationRef:
 ;
 
 RelationConstant:
-    name=STRING    
+    name=DQ_STRING    
 ;
 
 
@@ -193,11 +203,11 @@ UriLink:
 ;
 
 UriLinkage:
-	{UriLinkage} name=STRING 
+	{UriLinkage} name=URIPARAM 
 ;
 
 Title:
-    'title:' name=STRING    
+    'title:' name=DQ_STRING    
 ;
 
 terminal URISTRING	: 
@@ -229,3 +239,12 @@ terminal URISTRING	:
     )*
     '"'
 ;
+
+URIPARAM : DQ_STRING;
+// almost the same as STRING, but only accepts a string defined by a double quote
+terminal DQ_STRING	: 
+			'"' ( '\\' ('b'|'t'|'n'|'f'|'r'|"'"|'u'|'\\')
+				| !('\\'|'"')
+			)* '"'
+		; 
+

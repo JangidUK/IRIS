@@ -70,7 +70,7 @@ public class SequentialResourceRequestHandler implements ResourceRequestHandler 
 						newPathParameters.add(key, transitionProperties.get(key).toString());
 				}
 			}
-	    	InteractionContext newCtx = new InteractionContext(ctx, newPathParameters, null, t.getTarget());
+	    	InteractionContext newCtx = new InteractionContext(ctx, null, newPathParameters, null, t.getTarget());
 	    	newCtx.setResource(null);
 			Response response = rimHandler.handleRequest(headers, 
 					newCtx, 

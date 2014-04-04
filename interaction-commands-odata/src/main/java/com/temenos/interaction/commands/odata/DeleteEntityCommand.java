@@ -25,7 +25,6 @@ package com.temenos.interaction.commands.odata;
 import javax.ws.rs.core.Response.Status;
 
 import org.odata4j.core.OEntityKey;
-import org.odata4j.edm.EdmDataServices;
 import org.odata4j.edm.EdmEntitySet;
 import org.odata4j.exceptions.ODataProducerException;
 import org.odata4j.producer.ODataProducer;
@@ -39,12 +38,8 @@ import com.temenos.interaction.core.command.InteractionException;
 public class DeleteEntityCommand extends AbstractODataCommand implements InteractionCommand {
 	private final Logger logger = LoggerFactory.getLogger(DeleteEntityCommand.class);
 
-	private ODataProducer producer;
-	private EdmDataServices edmDataServices;
-
 	public DeleteEntityCommand(ODataProducer producer) {
-		this.producer = producer;
-		this.edmDataServices = producer.getMetadata();
+		super(producer);
 	}
 	
 	protected ODataProducer getProducer() {
@@ -62,7 +57,7 @@ public class DeleteEntityCommand extends AbstractODataCommand implements Interac
 		
 		String entity = getEntityName(ctx);
 		logger.debug("Deleting entity for " + entity);
-		EdmEntitySet entitySet = edmDataServices.getEdmEntitySet(entity);
+		EdmEntitySet entitySet = getEdmMetadata().getEdmEntitySet(entity);
 		if (entitySet == null) {
 			throw new InteractionException(Status.NOT_FOUND, "Entity set not found [" + entity + "]");		
 		}
@@ -71,7 +66,7 @@ public class DeleteEntityCommand extends AbstractODataCommand implements Interac
 		// Create entity key (simple types only)
 		OEntityKey key;
 		try {
-			key = CommandHelper.createEntityKey(edmDataServices, entity, ctx.getId());
+			key = CommandHelper.createEntityKey(getEdmMetadata(), entity, ctx.getId());
 		} catch(Exception e) {
 			throw new InteractionException(Status.INTERNAL_SERVER_ERROR, e.getMessage());
 		}

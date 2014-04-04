@@ -42,7 +42,7 @@
             <div class="clear hideSkiplink"></div>
             <div class="navBar">
                 <form>
-                    <input disabled="true" type="text" name="odata-svc" id="where" value="<%=request.getParameter("odata-svc")%>" class="text ui-widget-content ui-corner-all" />
+                    <input type="text" name="odata-svc" id="where" value="<%=request.getParameter("odata-svc")%>" style="width: 90%;" class="text ui-widget-content ui-corner-all" /><input type="button" name="load" value="Load" onclick="javascript: loadService();" />
                 </form>
             </div>
         </div>
@@ -82,6 +82,15 @@
     <script type="text/javascript">
         $(OnPageLoad)
     </script>
+	<script type="text/javascript">
+	
+		function loadService() {
+			var serviceUri = $("#where").val();
+		    GetMetadata(serviceUri);
+			GetServices(serviceUri);    
+		}
+
+	</script>
 </body>
 </html>
 

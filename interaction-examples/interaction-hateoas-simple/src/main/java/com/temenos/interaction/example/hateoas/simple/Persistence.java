@@ -80,5 +80,17 @@ public class Persistence {
 		}
 		return note;
     }
+	
+	public Note insertNote(Note note) {
+		try {
+    		entityManager.getTransaction().begin();
+			//note = entityManager.find(Note.class, id);
+			entityManager.persist(note);
+    		entityManager.getTransaction().commit();    		
+		} catch(Exception e) {
+			logger.severe("Error while removing entity [" + note.getNoteID() + "]: " + e.getMessage());
+		}
+		return note;
+    }
 
 }

@@ -47,6 +47,7 @@ import com.temenos.interaction.sdk.interaction.transition.IMTransition;
  */
 public class IMResourceStateMachine {
 
+	private String rimName;
 	private String entityName;											//Entity name
 	private IMState collectionState;							//Collection state
 	private IMState entityState;								//Entity state
@@ -76,6 +77,14 @@ public class IMResourceStateMachine {
 		addStateTransition(collectionState.getName(), entityState.getName(), methodGetEntity, null, null, null, null, null);
 	}
 	
+	public String getRimName() {
+		return rimName;
+	}
+
+	public void setRimName(String rimName) {
+		this.rimName = rimName;
+	}
+
 	public String getEntityName() {
 		return entityName;
 	}

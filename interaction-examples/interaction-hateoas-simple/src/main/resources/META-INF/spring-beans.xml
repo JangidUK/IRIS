@@ -94,7 +94,6 @@
     <bean id="GETServiceRoot" class="com.temenos.interaction.example.hateoas.simple.GETServiceRootCommand" />
 	<bean id="NoopGET" class="com.temenos.interaction.core.command.NoopGETCommand" />
 	<bean id="NoopPUT" class="com.temenos.interaction.core.command.NoopPUTCommand" />
-	<bean id="NoopPOST" class="com.temenos.interaction.core.command.NoopPOSTCommand" />
 	<bean id="GETPreferences" class="com.temenos.interaction.example.hateoas.simple.GETPreferencesCommand" />
 	<bean id="GETNotes" class="com.temenos.interaction.example.hateoas.simple.GETNotesCommand">
 		<constructor-arg ref="persistence" />
@@ -105,6 +104,9 @@
 	<bean id="DELETENote" class="com.temenos.interaction.example.hateoas.simple.DELETENoteCommand">
 		<constructor-arg ref="persistence" />
 	</bean>
+	<bean id="CREATENote" class="com.temenos.interaction.example.hateoas.simple.CREATENoteCommand">
+		<constructor-arg ref="persistence" />
+	</bean>
 
 	<!-- Resource commands -->
 	<bean id="commands" class="com.temenos.interaction.core.command.NewCommandController">
@@ -113,11 +115,11 @@
 				<entry key="GETServiceRoot" value-ref="GETServiceRoot" />
 				<entry key="NoopGET" value-ref="NoopGET" />
 				<entry key="NoopPUT" value-ref="NoopPUT" />
-				<entry key="NoopPOST" value-ref="NoopPOST" />
 				<entry key="GETPreferences" value-ref="GETPreferences" />
 				<entry key="GETNotes" value-ref="GETNotes" />
 				<entry key="GETNote" value-ref="GETNote" />
 				<entry key="DELETENote" value-ref="DELETENote" />
+				<entry key="CREATENote" value-ref="CREATENote" />
 			</util:map> 
 		</constructor-arg>
 	</bean>

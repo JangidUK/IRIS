@@ -94,4 +94,23 @@ public class TestRetryWorkflowStrategyCommand {
 			assertTrue(elapsedTime >= shouldWaitInMillis);
 		}
 	}
+	
+	@Test
+	public void testCommandsBadRequest() throws InteractionException {
+		InteractionCommand mockCommand = mock(InteractionCommand.class);
+		when(mockCommand.execute(any(InteractionContext.class))).thenThrow(
+				new InteractionException(Status.BAD_REQUEST, "Test Exception"));
+		
+		InteractionContext mockContext = mock(InteractionContext.class);
+		RetryWorkflowStrategyCommand w = 
+				new RetryWorkflowStrategyCommand(mockCommand,3,1);
+		boolean exceptionThrown = false;
+		try {
+			w.execute(mockContext);
+		} catch (InteractionException e) {
+			exceptionThrown = true;
+		}
+		assertTrue(exceptionThrown);
+		verify(mockCommand, times(1)).execute(any(InteractionContext.class));		
+	}
 }

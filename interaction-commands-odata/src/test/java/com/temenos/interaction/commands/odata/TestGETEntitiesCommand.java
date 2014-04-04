@@ -30,6 +30,7 @@ import static org.mockito.Mockito.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response.Status;
 
@@ -120,7 +121,7 @@ public class TestGETEntitiesCommand {
 	private InteractionContext createInteractionContext(String entity, MultivaluedMap<String, String> queryParams) {
 		ResourceState resourceState = mock(ResourceState.class);
 		when(resourceState.getEntityName()).thenReturn(entity);
-        InteractionContext ctx = new InteractionContext(mock(MultivaluedMap.class), queryParams ,resourceState, mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), mock(MultivaluedMap.class), queryParams ,resourceState, mock(Metadata.class));
         return ctx;
 	}
 

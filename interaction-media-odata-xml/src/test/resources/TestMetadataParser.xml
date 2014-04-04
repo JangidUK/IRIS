@@ -111,4 +111,33 @@
 			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
 		</Property>
 	</Entity>
+	<Entity Name="CustomerNonManDateOfBirth">
+		<Term Name="TEST_ENTITY_ALIAS">MyCustomer</Term>
+		<Property Name="name" >
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="address">
+			<Term Name="TERM_LIST_TYPE">true</Term>
+			<Property Name="number">
+				<Term Name="TERM_VALUE_TYPE">INTEGER_NUMBER</Term>
+			</Property>
+			<Property Name="street">
+				<Term Name="TERM_LIST_TYPE">true</Term>
+				<Property Name="streetType" />
+			</Property>
+			<Property Name="town" />
+			<Property Name="postCode" />
+		</Property>
+		<Property Name="dateOfBirth" >
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+		<Property Name="sector" />
+		<Property Name="industry" />
+		<Property Name="loyal" >
+			<Term Name="TERM_VALUE_TYPE">BOOLEAN</Term>
+		</Property>
+		<Property Name="loyalty_rating" >
+			<Term Name="TERM_VALUE_TYPE">NUMBER</Term>
+		</Property>
+	</Entity>
 </Metadata>

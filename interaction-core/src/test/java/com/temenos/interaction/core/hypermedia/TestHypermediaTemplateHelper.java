@@ -24,6 +24,9 @@ package com.temenos.interaction.core.hypermedia;
 
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 
 public class TestHypermediaTemplateHelper {
@@ -66,8 +69,32 @@ public class TestHypermediaTemplateHelper {
 
 	@Test
 	public void testGetTemplatedBaseUriLookBehind() {
-		// 
 		assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/GB0010001/", 
 				HypermediaTemplateHelper.getTemplatedBaseUri("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/", "http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/GB0010001/root"));
 	}
+	
+	@Test
+	public void testTemplateReplace() {
+		Map<String,Object> properties = new HashMap<String,Object>();
+		properties.put("companyid", "GB0010001");
+		assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/GB0010001/",
+				HypermediaTemplateHelper.templateReplace("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/", properties));
+	}
+
+	@Test
+	public void testSpecialCharacterTemplateReplace() {
+		Map<String,Object> properties = new HashMap<String,Object>();
+		properties.put("companyid", "GB0010001");
+		assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/GB0010001/$metadata",
+				HypermediaTemplateHelper.templateReplace("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/$metadata", properties));
+	}
+
+	@Test
+	public void testPartialTemplateReplace() {
+		Map<String,Object> properties = new HashMap<String,Object>();
+		properties.put("companyid", "GB0010001");
+		assertEquals("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/GB0010001/flights/{id}",
+				HypermediaTemplateHelper.templateReplace("http://127.0.0.1:9081/hothouse-iris/Hothouse.svc/{companyid}/flights/{id}", properties));
+	}
+
 }

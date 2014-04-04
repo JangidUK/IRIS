@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ public class InteractionContext {
 	public final static String DEFAULT_ID_PATH_ELEMENT = "id";
 	
 	/* Execution context */
+	private final HttpHeaders headers;
 	private final MultivaluedMap<String, String> queryParameters;
 	private final MultivaluedMap<String, String> pathParameters;
 	private final ResourceState currentState;
@@ -67,6 +69,7 @@ public class InteractionContext {
 	private Map<String, Object> attributes = new HashMap<String, Object>();
 	private String preconditionIfMatch = null;
 	private List<String> preferredLanguages = new ArrayList<String>();
+	private Map<String, String> responseHeaders = new HashMap<String, String>();
 
 	/**
 	 * Construct the context for execution of an interaction.
@@ -78,7 +81,8 @@ public class InteractionContext {
 	 * @param pathParameters
 	 * @param queryParameters
 	 */
-	public InteractionContext(final MultivaluedMap<String, String> pathParameters, final MultivaluedMap<String, String> queryParameters, final ResourceState currentState, final Metadata metadata) {
+	public InteractionContext(final HttpHeaders headers, final MultivaluedMap<String, String> pathParameters, final MultivaluedMap<String, String> queryParameters, final ResourceState currentState, final Metadata metadata) {
+		this.headers = headers;
 		this.pathParameters = pathParameters;
 		this.queryParameters = queryParameters;
 		this.currentState = currentState;
@@ -97,7 +101,8 @@ public class InteractionContext {
 	 * @param queryParameters new query parameters or null to not override
 	 * @param currentState new current state or null to not override
 	 */
-	public InteractionContext(InteractionContext ctx, final MultivaluedMap<String, String> pathParameters, final MultivaluedMap<String, String> queryParameters, final ResourceState currentState) {
+	public InteractionContext(InteractionContext ctx, final HttpHeaders headers, final MultivaluedMap<String, String> pathParameters, final MultivaluedMap<String, String> queryParameters, final ResourceState currentState) {
+		this.headers = headers != null ? headers : ctx.getHeaders();
 		this.pathParameters = pathParameters != null ? pathParameters : ctx.pathParameters;
 		this.queryParameters = queryParameters != null ? queryParameters : ctx.queryParameters;
 		this.currentState = currentState != null ? currentState : ctx.currentState;
@@ -124,6 +129,22 @@ public class InteractionContext {
 	 */
 	public MultivaluedMap<String, String> getPathParameters() {
 		return pathParameters;
+	}
+
+	/**
+	 * The HTTP headers of the current request.
+	 * @return
+	 */
+	public HttpHeaders getHeaders() {
+		return headers;
+	}
+
+	/**
+	 * The HTTP headers to be set in the response.
+	 * @return
+	 */
+	public Map<String,String> getResponseHeaders() {
+		return responseHeaders;
 	}
 
 	/**

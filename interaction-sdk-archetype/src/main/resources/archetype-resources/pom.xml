@@ -81,21 +81,27 @@
           <!-- Override the default [targetDirectory] of ${project.build.directory}/src-gen
           <targetDirectory>${basedir}/src/main/java</targetDirectory> 
 		  -->
-          <rimSourceFile>${basedir}/src/main/resources/${artifactId}.rim</rimSourceFile>
+          <rimSourceDir>${basedir}/src/main/resources/</rimSourceDir>
           <skipRIMGeneration>${skipRIMGeneration}</skipRIMGeneration>
         </configuration>
       </plugin>
       
       <!-- Configure the jetty plugin to run an instance of our responder 'mvn jetty:run' -->
       <plugin>
-        <groupId>org.mortbay.jetty</groupId>
-        <artifactId>maven-jetty-plugin</artifactId>
-        <version>6.1.26</version>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.0.5.v20130815</version>
         <configuration>
+          <scanIntervalSeconds>10</scanIntervalSeconds>
           <stopPort>8005</stopPort>
           <stopKey>STOP</stopKey>
-          <!-- Configure the webapp -->
-          <contextPath>/responder</contextPath>
+          <webApp>
+            <!-- Configure the webapp root -->
+            <contextPath>/responder</contextPath>
+            <resourceBases>
+              <resourceBase>${basedir}/src/main/webapp</resourceBase>
+            </resourceBases>
+          </webApp>
         </configuration>
       </plugin>
 

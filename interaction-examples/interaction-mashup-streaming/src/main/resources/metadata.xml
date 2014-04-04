@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  #%L
+  interaction-example-mashup-streaming
+  %%
+  Copyright (C) 2012 - 2013 Temenos Holdings N.V.
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  #L%
+  -->
+
+<Metadata ModelName="HateoasSimple" Version="1.0" 
+          xmlns="http://iris.temenos.com/metadata.xsd"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://iris.temenos.com metadata.xsd">
+    <Entity Name="HOME"></Entity>
+    <Entity Name="NONE"></Entity>
+	<Entity Name="Profile">
+		<Property Name="userID">
+			<Term Name="TERM_MANDATORY">true</Term>
+			<Term Name="TERM_ID_FIELD">true</Term>
+		</Property>
+		<Property Name="name">
+			<Term Name="TERM_MANDATORY">true</Term>
+		</Property>
+		<Property Name="email">
+			<Term Name="TERM_MANDATORY">true</Term>
+		</Property>
+		<Property Name="DOB">
+			<Term Name="TERM_MANDATORY">true</Term>
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+		<Property Name="location" />
+		<Property Name="pictureTaken">
+			<Term Name="TERM_VALUE_TYPE">TIMESTAMP</Term>
+		</Property>
+	</Entity>
+</Metadata>

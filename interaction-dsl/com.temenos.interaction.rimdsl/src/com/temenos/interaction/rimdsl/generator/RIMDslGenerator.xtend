@@ -85,9 +85,9 @@ class RIMDslGenerator implements IGenerator {
 
             public «state.name»ResourceState(ResourceFactory factory) {
                 «IF state.type.isCollection»
-                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), null, «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
                 «ELSEIF state.type.isItem»
-                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + rim.fullyQualifiedName + "." + state.errorState.name + "\")" } else { "null" }»);
+                super("«state.entity.name»", "«state.name»", createActions(), "«producePath(rim, state)»", createLinkRelations(), «if (state.path != null) { "new UriSpecification(\"" + state.name + "\", \"" + producePath(rim, state) + "\")" } else { "null" }», «if (state.errorState != null) { "factory.getResourceState(\"" + state.errorState.fullyQualifiedName + "\")" } else { "null" }»);
                 «ENDIF»
                 «IF state.isInitial»
                 setInitial(true);
@@ -255,25 +255,29 @@ class RIMDslGenerator implements IGenerator {
 
     def produceActionSet(State state, ResourceCommand view, EList<ResourceCommand> actions) '''
         List<Action> «state.name»Actions = new ArrayList<Action>();
-        «IF view != null && (view.command.properties.size > 0 || view.properties.size > 0)»
+        «IF view != null && ((view.command.spec != null && view.command.spec.properties.size > 0) || view.properties.size > 0)»
             actionViewProperties = new Properties();
-            «FOR commandProperty :view.command.properties»
-            actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
-            «ENDFOR»
+            «IF view.command.spec != null && view.command.spec.properties.size > 0»
+            «FOR commandProperty :view.command.spec.properties»
+                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+	        	«ENDFOR»
+	        «ENDIF»
             «FOR commandProperty :view.properties»
             actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
             «ENDFOR»
         «ENDIF»
         «IF view != null»
-        «state.name»Actions.add(new Action("«view.command.name»", Action.TYPE.VIEW, «if (view != null && (view.command.properties.size > 0 || view.properties.size > 0)) { "actionViewProperties" } else { "new Properties()" }»));
+        «state.name»Actions.add(new Action("«view.command.name»", Action.TYPE.VIEW, «if (view != null && ((view.command.spec != null && view.command.spec.properties.size > 0) || view.properties.size > 0)) { "actionViewProperties" } else { "new Properties()" }»));
         «ENDIF»
         «IF actions != null»
             «FOR action : actions»
             actionViewProperties = new Properties();
-            «IF action != null && (action.command.properties.size > 0 || action.properties.size > 0)»
-                «FOR commandProperty :action.command.properties»
-                actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
-                «ENDFOR»
+            «IF action != null && ((action.command.spec != null && action.command.spec.properties.size > 0) || action.properties.size > 0)»
+                «IF action.command.spec != null && action.command.spec.properties.size > 0»
+                    «FOR commandProperty :action.command.spec.properties»
+                    actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
+                    «ENDFOR»
+		        «ENDIF»
                 «FOR commandProperty :action.properties»
                 actionViewProperties.put("«commandProperty.name»", "«commandProperty.value»");
                 «ENDFOR»

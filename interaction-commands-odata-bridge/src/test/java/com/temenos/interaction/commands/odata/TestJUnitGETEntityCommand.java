@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.joda.time.LocalDateTime;
@@ -274,7 +275,7 @@ public class TestJUnitGETEntityCommand {
 		when(resourceState.getEntityName()).thenReturn(entity);
 		MultivaluedMap<String, String> pathParams = new MultivaluedMapImpl<String>();
 		pathParams.add("id", id);
-        InteractionContext ctx = new InteractionContext(pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
+        InteractionContext ctx = new InteractionContext(mock(HttpHeaders.class), pathParams, mock(MultivaluedMap.class), resourceState, mock(Metadata.class));
         return ctx;
 	}
 

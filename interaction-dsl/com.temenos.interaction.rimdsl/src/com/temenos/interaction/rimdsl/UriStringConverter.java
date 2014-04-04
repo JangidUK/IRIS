@@ -1,6 +1,7 @@
 package com.temenos.interaction.rimdsl;
 
-import org.eclipse.xtext.conversion.impl.AbstractLexerBasedConverter;
+import org.eclipse.xtext.conversion.ValueConverterException;
+import org.eclipse.xtext.conversion.impl.AbstractValueConverter;
 import org.eclipse.xtext.nodemodel.INode;
 
 /**
@@ -8,10 +9,9 @@ import org.eclipse.xtext.nodemodel.INode;
  *
  * @author aphethean
  */
-public class UriStringConverter extends AbstractLexerBasedConverter<String> {
+public class UriStringConverter extends AbstractValueConverter<String> {
 
-	@Override
-	protected String toEscapedString(String value) {
+	public String toString(String value) throws ValueConverterException {
 		return '"' + value + '"';
 	}
 
@@ -20,5 +20,6 @@ public class UriStringConverter extends AbstractLexerBasedConverter<String> {
 			return null;
 		return string.substring(1, string.length() - 1);
 	}
+
 	
 }

@@ -27,8 +27,12 @@ public class RIMDslFormatter extends AbstractDeclarativeFormatter {
 		setPreservingLinewraps(c, 2).after(f.getDomainDeclarationRule());
 		setPreservingLinewraps(c, 1).after(f.getUseRule());
 		setPreservingLinewraps(c, 2).after(f.getResourceInteractionModelRule());
+		setPreservingLinewraps(c, 2).before(f.getStateRule());
+		setPreservingLinewraps(c, 2).after(f.getStateRule());
  		setPreservingLinewraps(c, 1).after(f.getEventRule());
 		setPreservingLinewraps(c, 1).after(f.getCommandRule());
+		setPreservingLinewraps(c, 1).after(f.getCommandSpecRule());
+		setPreservingLinewraps(c, 1).after(f.getBasePathRule());
 		setPreservingLinewraps(c, 1).after(f.getResourceTypeRule());
 		setPreservingLinewraps(c, 1).after(f.getEntityRule());
 		setPreservingLinewraps(c, 1).after(f.getImplRefRule());
@@ -38,6 +42,7 @@ public class RIMDslFormatter extends AbstractDeclarativeFormatter {
 		setPreservingLinewraps(c, 1).after(f.getTransitionAutoRule());
 		setPreservingLinewraps(c, 1).after(f.getTransitionEmbeddedRule());
 		setPreservingLinewraps(c, 1).after(f.getTransitionRefRule());
+		setPreservingLinewraps(c, 1).after(f.getTitleRule());
 		setPreservingLinewraps(c, 1).after(f.getTransitionSpecAccess().getRightSquareBracketKeyword_2_1_3());
 		setPreservingLinewraps(c, 1).after(f.getResourceCommandAccess().getRightSquareBracketKeyword_1_4());
 
